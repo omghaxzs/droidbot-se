@@ -18,6 +18,7 @@ using Sandbox.Game.GameSystems;
 using VRage.Game.GUI.TextPanel;
 using VRage;
 using VRage.Utils;
+using Sandbox.Game.Entities.Character.Components;
 
 namespace Droidbot.Display
 {
@@ -63,6 +64,7 @@ namespace Droidbot.Display
 
         public override void DrawText(string text, Vector2 position, Color color, TextAlignment alignment)
         {
+            //Console.WriteLine("drawing text: position: {0}", position);
             var sprite = new MySprite()
             {
                 Type = SpriteType.TEXT,
@@ -103,10 +105,21 @@ namespace Droidbot.Display
     {
         public string id = null;
         public Dictionary<Point, Screen> screens = new Dictionary<Point, Screen>();
+        private int maxX = 0;
+        private int maxY = 0;
 
         public CompositeDisplay(string id)
         {
             this.id = id;
+        }
+
+        private void CalculateViewport()
+        {
+            // add up the viewports of all our screens
+            this.viewport = new RectangleF(0, 0, screens.First().Value.viewport.Width * (this.maxX + 1), screens.First().Value.viewport.Height * (this.maxY + 1));
+            var surface = screens.First().Value.surface;
+            this.characterSize = surface.MeasureStringInPixels(new StringBuilder("w"), "Monospace", this.fontSize);
+            this.maxCharacterLength = (int)(viewport.Size.X / characterSize.X) - 1;
         }
 
         public string AddScreen(Screen s, int x, int y)
@@ -120,7 +133,17 @@ namespace Droidbot.Display
             // otherwise add it
             this.screens.Add(p, s);
 
-            return "";
+            if (x > maxX)
+            {
+                maxX = x;
+            }
+            if (y > maxY)
+            {
+                maxY = y;
+            }
+            CalculateViewport();
+
+            return null;
         }
 
         public override void BeginDraw()
@@ -135,7 +158,17 @@ namespace Droidbot.Display
 
         private KeyValuePair<Point, Screen> GetScreenForPoint(Vector2 p)
         {
-            return screens.First(pair => p.X >= pair.Value.viewport.X && p.X <= pair.Value.viewport.Right && p.Y >= pair.Value.viewport.Y && p.Y <= pair.Value.viewport.Right);
+            var ret = screens.FirstOrDefault(pair =>
+            {
+                // generate a modified viewport with the correct X/Y positions
+                var modifiedViewport = new RectangleF(pair.Key.X * pair.Value.viewport.Width, pair.Key.Y * pair.Value.viewport.Height, pair.Value.viewport.Width, pair.Value.viewport.Height);
+                //Console.WriteLine("- evaluating screen {0} for point {1}\n-- viewport: {2}", pair, p, modifiedViewport);
+                return p.X >= modifiedViewport.X && p.X <= modifiedViewport.Right && p.Y >= modifiedViewport.Y && p.Y <= modifiedViewport.Right;
+            });
+
+            //Console.WriteLine("point {0} returned screen {1}", p, ret);
+
+            return ret;
         }
 
         private RectangleF CalculateTextBox(string text, Vector2 position, TextAlignment alignment)
@@ -163,13 +196,28 @@ namespace Droidbot.Display
             return new RectangleF(0, 0, 0, 0);
         }
 
-        private RectangleF CalculateTextBoxExtent(RectangleF fullTextBox, RectangleF viewport)
+        private RectangleF CalculateTextBoxExtent(RectangleF fullTextBox, KeyValuePair<Point, Screen> pair, out bool result)
         {
-            return new RectangleF(
-                fullTextBox.X < viewport.X ? viewport.X : fullTextBox.X, // if X is less than the left most point of our viewport, use the left most point of our viewport
-                fullTextBox.Y < viewport.Y ? viewport.Y : fullTextBox.Y, // if Y is less than the top most point of our viewport, use the top most point of our viewport
-                fullTextBox.Right > viewport.Right ? viewport.Right : fullTextBox.Right, // if Right is larger than the right most point of our viewport, use the right most point of our viewport
-                fullTextBox.Bottom > viewport.Bottom ? viewport.Bottom : fullTextBox.Bottom); // if Right is larger than the right most point of our viewport, use the right most point of our viewport
+            // generate a modified viewport with the correct X/Y positions
+            var modifiedViewport = new RectangleF(pair.Key.X * pair.Value.viewport.Width, pair.Key.Y * pair.Value.viewport.Height, pair.Value.viewport.Width, pair.Value.viewport.Height);
+
+            var bbViewport = new BoundingBox2(new Vector2(modifiedViewport.X, modifiedViewport.Y), new Vector2(modifiedViewport.Right, modifiedViewport.Bottom));
+            var bbTextBox = new BoundingBox2(new Vector2(fullTextBox.X, fullTextBox.Y), new Vector2(fullTextBox.Right, fullTextBox.Bottom));
+
+            if (bbViewport.Intersects(bbTextBox))
+            {
+
+                //Console.WriteLine("\t\trect: {0}\n\t\tviewport: {1}\n\t\tbbViewport: {2}\n\t\tbbTextBox: {3}\n\t\tintersect: {4}\n\t\tintersect2: {5}", fullTextBox, modifiedViewport, bbViewport, bbTextBox, bbViewport.Intersect(bbTextBox), bbTextBox.Intersect(bbViewport));
+                var intersection = bbViewport.Intersect(bbTextBox);
+                result = true;
+                return new RectangleF(pair.Key.X == 0 ? intersection.Min.X : -intersection.Min.X, pair.Key.Y == 0 ? intersection.Min.Y : -intersection.Min.X, intersection.Width, intersection.Height);
+            }
+            else
+            {
+                //Console.WriteLine("rect {0} does not intersect screen {1}", fullTextBox, pair.Key);
+                result = false;
+                return new RectangleF(0, 0, 0, 0);
+            }
         }
 
         public override void DrawText(string text, Vector2 position, Color color, TextAlignment alignment)
@@ -177,23 +225,17 @@ namespace Droidbot.Display
             // get the text box for the text
             var textRect = CalculateTextBox(text, position, alignment);
 
-            // which screen does the left most point start?
-            var leftPointScreen = this.GetScreenForPoint(textRect.Position);
-            var rightPointScreen = this.GetScreenForPoint(new Vector2(textRect.Right, textRect.Bottom));
-            // subtract their X coordinates
-            var xCoordDiff = rightPointScreen.Key.X - leftPointScreen.Key.X;
-            if (xCoordDiff > 0)
+            //Console.WriteLine("text rect: {0}", textRect);
+
+            foreach (var screen in this.screens)
             {
-                for (var i = 0; i < xCoordDiff; i++)
+                // calculate the extent for this screen
+                var textRectExtent = CalculateTextBoxExtent(textRect, screen, out bool intersects);
+                if (intersects)
                 {
-                    // calculate the split text box
-                    var textRectExtent = CalculateTextBoxExtent(textRect, viewport);
+                    //Console.WriteLine("\ttext rect extent for screen {0}: {1}", screen.Key, textRectExtent);
+                    screen.Value.DrawText(text, new Vector2(textRectExtent.X, textRectExtent.Y), color, TextAlignment.LEFT);
                 }
-            }
-            else
-            {
-                // it's displaying on just one screen, whew
-                leftPointScreen.Value.DrawText(text, position, color, alignment);
             }
         }
 
@@ -225,7 +267,7 @@ namespace Droidbot.Display
         readonly Dictionary<string, RenderOutput> VISUALS;
         public delegate void RenderOutput(Surface s);
 
-        public List<IMyCargoContainer> storage;
+        public List<IMyCargoContainer> storage = new List<IMyCargoContainer>();
         public float fontSize;
         public Color textColor;
         public IMyGridTerminalSystem grid;
@@ -235,7 +277,7 @@ namespace Droidbot.Display
 
         public Dictionary<string, CompositeDisplay> displays = new Dictionary<string, CompositeDisplay>();
 
-        public State(MyGridProgram prog)
+        public State(MyGridProgram p)
         {
             VISUALS = new Dictionary<string, RenderOutput>
             {
@@ -243,14 +285,13 @@ namespace Droidbot.Display
             };
             this.fontSize = 0.75f;
             this.textColor = Color.Yellow;
-            this.prog = prog;
-            this.grid = prog.GridTerminalSystem;
+            this.prog = p;
+            this.grid = p.GridTerminalSystem;
 
             foreach (var vis in VISUALS)
             {
                 outputs[vis.Key] = new List<Surface>();
             }
-
             // search all of the screens for the ones that match our maps
             var screens = new List<IMyTextPanel>();
             this.grid.GetBlocksOfType(screens, s => s.CustomData.StartsWith("droid"));
@@ -284,13 +325,14 @@ namespace Droidbot.Display
                         if (!this.displays.ContainsKey(displayId))
                         {
                             this.displays.Add(displayId, new CompositeDisplay(displayId));
+                            this.outputs[display].Add(this.displays[displayId]);
                         }
 
                         // add the screen
                         var ret = this.displays[displayId].AddScreen(s, displayX, displayY);
                         if (ret != null)
                         {
-                            this.Log("failed to add screen " + screen.DisplayNameText + " to display " + displayId);
+                            this.Log("failed to add screen " + screen.DisplayNameText + " to display " + displayId + " reason: " + ret);
                         }
                     }
                     else
@@ -300,9 +342,9 @@ namespace Droidbot.Display
                 }
             }
 
+
             // grab all storage
-            var storage = new List<IMyCargoContainer>();
-            this.grid.GetBlocksOfType(storage, s => s.CustomData.StartsWith("droid"));
+            this.grid.GetBlocksOfType(this.storage, s => s.CustomData.StartsWith("droid"));
         }
 
         public void Log(string text)
@@ -319,7 +361,9 @@ namespace Droidbot.Display
                 {
                     foreach (var output in outputs.Value)
                     {
+                        output.BeginDraw();
                         this.VISUALS[outputs.Key](output);
+                        output.EndDraw();
                     }
                 }
             }
