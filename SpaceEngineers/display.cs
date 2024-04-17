@@ -64,7 +64,7 @@ namespace Droidbot.Display
 
         public override void DrawText(string text, Vector2 position, Color color, TextAlignment alignment)
         {
-            //Console.WriteLine("drawing text: position: {0}", position);
+            Console.WriteLine("drawing text: position: {0}", position);
             var sprite = new MySprite()
             {
                 Type = SpriteType.TEXT,
@@ -213,9 +213,9 @@ namespace Droidbot.Display
             if (bbViewport.Intersects(bbTextBox))
             {
 
-                //Console.WriteLine("\t\trect: {0}\n\t\tviewport: {1}\n\t\tbbViewport: {2}\n\t\tbbTextBox: {3}\n\t\tintersect: {4}\n\t\tintersect2: {5}", fullTextBox, modifiedViewport, bbViewport, bbTextBox, bbViewport.Intersect(bbTextBox), bbTextBox.Intersect(bbViewport));
+                Console.WriteLine("\t\trect: {0}\n\t\tviewport: {1}\n\t\tbbViewport: {2}\n\t\tbbTextBox: {3}\n\t\tintersect: {4}\n\t\tintersect2: {5}", fullTextBox, modifiedViewport, bbViewport, bbTextBox, bbViewport.Intersect(bbTextBox), bbTextBox.Intersect(bbViewport));
                 var intersection = bbViewport.Intersect(bbTextBox);
-                return new KeyValuePair<bool, RectangleF>(true, new RectangleF(pair.Key.X == 0 ? intersection.Min.X : -intersection.Min.X, pair.Key.Y == 0 ? intersection.Min.Y : -intersection.Min.X, intersection.Width, intersection.Height));
+                return new KeyValuePair<bool, RectangleF>(true, new RectangleF(fullTextBox.X - modifiedViewport.X, fullTextBox.Y - modifiedViewport.Y, intersection.Width, intersection.Height));
             }
             else
             {
@@ -237,7 +237,7 @@ namespace Droidbot.Display
                 var textRectExtentPair = CalculateTextBoxExtent(textRect, screen);
                 if (textRectExtentPair.Key)
                 {
-                    //Console.WriteLine("\ttext rect extent for screen {0}: {1}", screen.Key, textRectExtent);
+                    Console.WriteLine("\ttext rect extent for screen {0}: {1}", screen.Key, textRectExtentPair);
                     screen.Value.DrawText(text, new Vector2(textRectExtentPair.Value.X, textRectExtentPair.Value.Y), color, TextAlignment.LEFT);
                 }
             }

@@ -909,6 +909,7 @@ namespace Tests
                             _customData = "droid\ndisplay: storage\ndisplayId: main\ndisplayX: 1\ndisplayY: 0"
                         },
                         new MockMyCargoContainer {
+                            _displayNameText = "storage",
                             _customData = "droid",
                             _inventory = new MockMyInventory {
                                 _currentVolume = 0,
@@ -927,24 +928,96 @@ namespace Tests
             // double check the viewport is 1024x512
             Assert.AreEqual(new RectangleF(0, 0, 1024, 512), compositeDisplay.viewport);
 
-            // this should only draw to the first screen
+            // this should draw 4 things to the first screen
             var screen1 = compositeDisplay.screens[new Point(0, 0)];
             Assert.IsNotNull(screen1);
             var mockSurface1 = screen1.surface as MockMyTextPanel;
             Assert.IsNotNull(mockSurface1);
-            Assert.AreEqual(1, mockSurface1._spriteCollection.Sprites.Length);
+            Assert.AreEqual(4, mockSurface1._spriteCollection.Sprites.Length);
 
-            // Now double check the sprite
-            // which should be the "[storage]" text
-            Assert.AreEqual(SpriteType.TEXT, mockSurface1._spriteCollection.Sprites[0].Type);
-            Assert.AreEqual(new Vector2(0, 502), mockSurface1._spriteCollection.Sprites[0].Position);
+            // Now double check the sprite positions
+            Assert.AreEqual(new Vector2(0, 0), mockSurface1._spriteCollection.Sprites[0].Position); // "storage"
+            Assert.AreEqual(new Vector2(0, screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[1].Position); // "progress bar"
+            Assert.AreEqual(new Vector2(0, screen1.characterSize.Y * 2), mockSurface1._spriteCollection.Sprites[2].Position); // "0 / 3000"
+            Assert.AreEqual(new Vector2(0, screen1.viewport.Bottom - screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[3].Position); // "[storage]"
 
+            // should just be one drawing for the second screen
             var screen2 = compositeDisplay.screens[new Point(1, 0)];
             Assert.IsNotNull(screen2);
             var mockSurface2 = screen2.surface as MockMyTextPanel;
             Assert.IsNotNull(mockSurface2);
+            Assert.AreEqual(1, mockSurface2._spriteCollection.Sprites.Length);
+            Assert.AreEqual(new Vector2(-512, screen2.characterSize.Y), mockSurface2._spriteCollection.Sprites[0].Position); // "progress bar"
+        }
 
-            Assert.IsNull(mockSurface2._spriteCollection.Sprites);
+        [TestMethod]
+        public void QuadScreenStorageWithStorage()
+        {
+            var blocks = new List<IMyTerminalBlock>
+                    {
+                        new MockMyTextPanel {
+                            _displayNameText = "display 1",
+                            _customData = "droid\ndisplay: storage\ndisplayId: main\ndisplayX: 0\ndisplayY: 0"
+                        },
+                        new MockMyTextPanel {
+                            _displayNameText = "display 2",
+                            _customData = "droid\ndisplay: storage\ndisplayId: main\ndisplayX: 1\ndisplayY: 0"
+                        },
+                        new MockMyTextPanel {
+                            _displayNameText = "display 3",
+                            _customData = "droid\ndisplay: storage\ndisplayId: main\ndisplayX: 0\ndisplayY: 1"
+                        },
+                        new MockMyTextPanel {
+                            _displayNameText = "display 4",
+                            _customData = "droid\ndisplay: storage\ndisplayId: main\ndisplayX: 1\ndisplayY: 1"
+                        },
+                        new MockMyCargoContainer {
+                            _displayNameText = "storage",
+                            _customData = "droid",
+                            _inventory = new MockMyInventory {
+                                _currentVolume = 0,
+                                _maxVolume = 3000
+                            }
+                        }
+                    };
+            State s = new State(new MockGridProgram(blocks));
+            s.Tick();
+
+            Assert.IsTrue(s.outputs.ContainsKey("storage"));
+            Assert.AreEqual(1, s.outputs["storage"].Count);
+            var compositeDisplay = s.outputs["storage"][0] as CompositeDisplay;
+            Assert.IsNotNull(compositeDisplay);
+
+            // double check the viewport is 1024x512
+            Assert.AreEqual(new RectangleF(0, 0, 1024, 1024), compositeDisplay.viewport);
+
+            // this should draw 3 things to the first screen
+            var screen1 = compositeDisplay.screens[new Point(0, 0)];
+            Assert.IsNotNull(screen1);
+            var mockSurface1 = screen1.surface as MockMyTextPanel;
+            Assert.IsNotNull(mockSurface1);
+            Assert.AreEqual(3, mockSurface1._spriteCollection.Sprites.Length);
+
+            // Now double check the sprite positions
+            Assert.AreEqual(new Vector2(0, 0), mockSurface1._spriteCollection.Sprites[0].Position); // "storage"
+            Assert.AreEqual(new Vector2(0, screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[1].Position); // "progress bar"
+            Assert.AreEqual(new Vector2(0, screen1.characterSize.Y * 2), mockSurface1._spriteCollection.Sprites[2].Position); // "0 / 3000"
+
+            // should just be one drawing for the second screen
+            var screen2 = compositeDisplay.screens[new Point(1, 0)];
+            Assert.IsNotNull(screen2);
+            var mockSurface2 = screen2.surface as MockMyTextPanel;
+            Assert.IsNotNull(mockSurface2);
+            Assert.AreEqual(1, mockSurface2._spriteCollection.Sprites.Length);
+            Assert.AreEqual(new Vector2(-512, screen2.characterSize.Y), mockSurface2._spriteCollection.Sprites[0].Position); // "progress bar"
+
+            // should just be one drawing for the third screen
+            var screen3 = compositeDisplay.screens[new Point(0, 1)];
+            Assert.IsNotNull(screen3);
+            var mockSurface3 = screen3.surface as MockMyTextPanel;
+            Assert.IsNotNull(mockSurface3);
+            Assert.AreEqual(1, mockSurface3._spriteCollection.Sprites.Length);
+            Assert.AreEqual(new Vector2(0, screen3.viewport.Height - screen3.characterSize.Y), mockSurface3._spriteCollection.Sprites[0].Position); // "[storage]"
         }
     }
 }
