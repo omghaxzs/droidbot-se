@@ -148,12 +148,18 @@ namespace Droidbot.Display
 
         public override void BeginDraw()
         {
-            screens.ForEach(s => s.Value.BeginDraw());
+            foreach (var s in screens)
+            {
+                s.Value.BeginDraw();
+            }
         }
 
         public override void EndDraw()
         {
-            screens.ForEach(s => s.Value.EndDraw());
+            foreach (var s in screens)
+            {
+                s.Value.EndDraw();
+            }
         }
 
         private KeyValuePair<Point, Screen> GetScreenForPoint(Vector2 p)
@@ -196,7 +202,7 @@ namespace Droidbot.Display
             return new RectangleF(0, 0, 0, 0);
         }
 
-        private RectangleF CalculateTextBoxExtent(RectangleF fullTextBox, KeyValuePair<Point, Screen> pair, out bool result)
+        private KeyValuePair<bool, RectangleF> CalculateTextBoxExtent(RectangleF fullTextBox, KeyValuePair<Point, Screen> pair)
         {
             // generate a modified viewport with the correct X/Y positions
             var modifiedViewport = new RectangleF(pair.Key.X * pair.Value.viewport.Width, pair.Key.Y * pair.Value.viewport.Height, pair.Value.viewport.Width, pair.Value.viewport.Height);
@@ -209,14 +215,12 @@ namespace Droidbot.Display
 
                 //Console.WriteLine("\t\trect: {0}\n\t\tviewport: {1}\n\t\tbbViewport: {2}\n\t\tbbTextBox: {3}\n\t\tintersect: {4}\n\t\tintersect2: {5}", fullTextBox, modifiedViewport, bbViewport, bbTextBox, bbViewport.Intersect(bbTextBox), bbTextBox.Intersect(bbViewport));
                 var intersection = bbViewport.Intersect(bbTextBox);
-                result = true;
-                return new RectangleF(pair.Key.X == 0 ? intersection.Min.X : -intersection.Min.X, pair.Key.Y == 0 ? intersection.Min.Y : -intersection.Min.X, intersection.Width, intersection.Height);
+                return new KeyValuePair<bool, RectangleF>(true, new RectangleF(pair.Key.X == 0 ? intersection.Min.X : -intersection.Min.X, pair.Key.Y == 0 ? intersection.Min.Y : -intersection.Min.X, intersection.Width, intersection.Height));
             }
             else
             {
                 //Console.WriteLine("rect {0} does not intersect screen {1}", fullTextBox, pair.Key);
-                result = false;
-                return new RectangleF(0, 0, 0, 0);
+                return new KeyValuePair<bool, RectangleF>(false, new RectangleF(0, 0, 0, 0));
             }
         }
 
@@ -230,11 +234,11 @@ namespace Droidbot.Display
             foreach (var screen in this.screens)
             {
                 // calculate the extent for this screen
-                var textRectExtent = CalculateTextBoxExtent(textRect, screen, out bool intersects);
-                if (intersects)
+                var textRectExtentPair = CalculateTextBoxExtent(textRect, screen);
+                if (textRectExtentPair.Key)
                 {
                     //Console.WriteLine("\ttext rect extent for screen {0}: {1}", screen.Key, textRectExtent);
-                    screen.Value.DrawText(text, new Vector2(textRectExtent.X, textRectExtent.Y), color, TextAlignment.LEFT);
+                    screen.Value.DrawText(text, new Vector2(textRectExtentPair.Value.X, textRectExtentPair.Value.Y), color, TextAlignment.LEFT);
                 }
             }
         }
@@ -310,14 +314,24 @@ namespace Droidbot.Display
                     // check to see if there's a display
                     if (displayId != null)
                     {
-                        if (!Int32.TryParse(customData.GetValueOrDefault("displayX", "0"), out int displayX))
+                        var displayX = 0;
+                        var displayY = 0;
+                        try
+                        {
+                            displayX = Int32.Parse(customData.GetValueOrDefault("displayX", "0"));
+                        }
+                        catch (Exception e)
                         {
                             Log("could not figure out displayX for display ID" + displayId);
                             displayX = 0;
                         }
-                        if (!Int32.TryParse(customData.GetValueOrDefault("displayY", "0"), out int displayY))
+                        try
                         {
-                            Log("could not figure out displayY for display ID" + displayId);
+                            displayY = Int32.Parse(customData.GetValueOrDefault("displayY", "0"));
+                        }
+                        catch (Exception e)
+                        {
+                            Log("could not figure out displayX for display ID" + displayId);
                             displayY = 0;
                         }
 
