@@ -1,9 +1,6 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Droidbot.Display;
+﻿using Droidbot.Display;
 using Sandbox.ModAPI.Ingame;
 using VRage.Game.ModAPI.Ingame;
-using System.Collections.Generic;
 using VRage.ObjectBuilders;
 using VRageMath;
 using VRage.Game.Components.Interfaces;
@@ -11,11 +8,9 @@ using Sandbox.ModAPI.Interfaces;
 using VRage.Game;
 using System.Text;
 using VRage.Game.GUI.TextPanel;
-using System.Diagnostics;
-using Sandbox.Game;
 using VRage;
 
-namespace Tests
+namespace display
 {
 
     public class MockMyInventory : IMyInventory
@@ -36,70 +31,31 @@ namespace Tests
 
         float IMyInventory.VolumeFillFactor => throw new NotImplementedException();
 
-        bool IMyInventory.CanItemsBeAdded(MyFixedPoint amount, MyItemType itemType)
-        {
-            throw new NotImplementedException();
-        }
+        bool IMyInventory.CanItemsBeAdded(MyFixedPoint amount, MyItemType itemType) => throw new NotImplementedException();
 
-        bool IMyInventory.CanTransferItemTo(IMyInventory otherInventory, MyItemType itemType)
-        {
-            throw new NotImplementedException();
-        }
+        bool IMyInventory.CanTransferItemTo(IMyInventory otherInventory, MyItemType itemType) => throw new NotImplementedException();
 
-        bool IMyInventory.ContainItems(MyFixedPoint amount, MyItemType itemType)
-        {
-            throw new NotImplementedException();
-        }
+        bool IMyInventory.ContainItems(MyFixedPoint amount, MyItemType itemType) => throw new NotImplementedException();
 
-        MyInventoryItem? IMyInventory.FindItem(MyItemType itemType)
-        {
-            throw new NotImplementedException();
-        }
+        MyInventoryItem? IMyInventory.FindItem(MyItemType itemType) => throw new NotImplementedException();
 
-        void IMyInventory.GetAcceptedItems(List<MyItemType> itemsTypes, Func<MyItemType, bool> filter)
-        {
-            throw new NotImplementedException();
-        }
+        void IMyInventory.GetAcceptedItems(List<MyItemType> itemsTypes, Func<MyItemType, bool> filter) => throw new NotImplementedException();
 
-        MyFixedPoint IMyInventory.GetItemAmount(MyItemType itemType)
-        {
-            throw new NotImplementedException();
-        }
+        MyFixedPoint IMyInventory.GetItemAmount(MyItemType itemType) => throw new NotImplementedException();
 
-        MyInventoryItem? IMyInventory.GetItemAt(int index)
-        {
-            throw new NotImplementedException();
-        }
+        MyInventoryItem? IMyInventory.GetItemAt(int index) => throw new NotImplementedException();
 
-        MyInventoryItem? IMyInventory.GetItemByID(uint id)
-        {
-            throw new NotImplementedException();
-        }
+        MyInventoryItem? IMyInventory.GetItemByID(uint id) => throw new NotImplementedException();
 
-        void IMyInventory.GetItems(List<MyInventoryItem> items, Func<MyInventoryItem, bool> filter)
-        {
-            throw new NotImplementedException();
-        }
+        void IMyInventory.GetItems(List<MyInventoryItem> items, Func<MyInventoryItem, bool> filter) => throw new NotImplementedException();
 
-        bool IMyInventory.IsConnectedTo(IMyInventory otherInventory)
-        {
-            throw new NotImplementedException();
-        }
+        bool IMyInventory.IsConnectedTo(IMyInventory otherInventory) => throw new NotImplementedException();
 
-        bool IMyInventory.IsItemAt(int position)
-        {
-            throw new NotImplementedException();
-        }
+        bool IMyInventory.IsItemAt(int position) => throw new NotImplementedException();
 
-        bool IMyInventory.TransferItemFrom(IMyInventory sourceInventory, MyInventoryItem item, MyFixedPoint? amount)
-        {
-            throw new NotImplementedException();
-        }
+        bool IMyInventory.TransferItemFrom(IMyInventory sourceInventory, MyInventoryItem item, MyFixedPoint? amount) => throw new NotImplementedException();
 
-        bool IMyInventory.TransferItemFrom(IMyInventory sourceInventory, int sourceItemIndex, int? targetItemIndex, bool? stackIfPossible, MyFixedPoint? amount)
-        {
-            throw new NotImplementedException();
-        }
+        bool IMyInventory.TransferItemFrom(IMyInventory sourceInventory, int sourceItemIndex, int? targetItemIndex, bool? stackIfPossible, MyFixedPoint? amount) => throw new NotImplementedException();
 
         bool IMyInventory.TransferItemTo(IMyInventory dstInventory, MyInventoryItem item, MyFixedPoint? amount)
         {
@@ -115,7 +71,11 @@ namespace Tests
     public class MockMyCargoContainer : IMyCargoContainer
     {
 
-        string IMyTerminalBlock.CustomName { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        string IMyTerminalBlock.CustomName
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
 
         string IMyTerminalBlock.CustomNameWithFaction => throw new NotImplementedException();
 
@@ -124,11 +84,31 @@ namespace Tests
         string IMyTerminalBlock.CustomInfo => throw new NotImplementedException();
 
         public string _customData = "";
-        string IMyTerminalBlock.CustomData { get => _customData; set => _customData = value; }
-        bool IMyTerminalBlock.ShowOnHUD { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        bool IMyTerminalBlock.ShowInTerminal { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        bool IMyTerminalBlock.ShowInToolbarConfig { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        bool IMyTerminalBlock.ShowInInventory { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        string IMyTerminalBlock.CustomData
+        {
+            get => _customData;
+            set => _customData = value;
+        }
+        bool IMyTerminalBlock.ShowOnHUD
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
+        bool IMyTerminalBlock.ShowInTerminal
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
+        bool IMyTerminalBlock.ShowInToolbarConfig
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
+        bool IMyTerminalBlock.ShowInInventory
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
 
         SerializableDefinitionId IMyCubeBlock.BlockDefinition => throw new NotImplementedException();
 
@@ -185,15 +165,9 @@ namespace Tests
 
         BoundingSphereD IMyEntity.WorldVolumeHr => throw new NotImplementedException();
 
-        void IMyTerminalBlock.GetActions(List<ITerminalAction> resultList, Func<ITerminalAction, bool> collect)
-        {
-            throw new NotImplementedException();
-        }
+        void IMyTerminalBlock.GetActions(List<ITerminalAction> resultList, Func<ITerminalAction, bool> collect) => throw new NotImplementedException();
 
-        ITerminalAction IMyTerminalBlock.GetActionWithName(string name)
-        {
-            throw new NotImplementedException();
-        }
+        ITerminalAction IMyTerminalBlock.GetActionWithName(string name) => throw new NotImplementedException();
 
         public IMyInventory _inventory = new MockMyInventory();
         IMyInventory IMyEntity.GetInventory()
@@ -281,29 +255,93 @@ namespace Tests
     {
         string IMyTextSurface.CurrentlyShownImage => throw new NotImplementedException();
 
-        float IMyTextSurface.FontSize { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        Color IMyTextSurface.FontColor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        Color IMyTextSurface.BackgroundColor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        byte IMyTextSurface.BackgroundAlpha { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        float IMyTextSurface.ChangeInterval { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        string IMyTextSurface.Font { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        TextAlignment IMyTextSurface.Alignment { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        float IMyTextSurface.FontSize
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
+        Color IMyTextSurface.FontColor
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        Color IMyTextSurface.BackgroundColor
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        byte IMyTextSurface.BackgroundAlpha
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        float IMyTextSurface.ChangeInterval
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        string IMyTextSurface.Font
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        TextAlignment IMyTextSurface.Alignment
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
 
         public string _script = "";
-        string IMyTextSurface.Script { get => _script; set => _script = value; }
+        string IMyTextSurface.Script
+        {
+            get => _script;
+
+            set => _script = value;
+        }
 
         public ContentType _contentType = ContentType.NONE;
-        ContentType IMyTextSurface.ContentType { get => _contentType; set => _contentType = value; }
+        ContentType IMyTextSurface.ContentType
+        {
+            get => _contentType;
+
+            set => _contentType = value;
+        }
 
         Vector2 IMyTextSurface.SurfaceSize => new Vector2(512, 512);
 
 
         Vector2 IMyTextSurface.TextureSize => new Vector2(512, 512);
 
-        bool IMyTextSurface.PreserveAspectRatio { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        float IMyTextSurface.TextPadding { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        Color IMyTextSurface.ScriptBackgroundColor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        Color IMyTextSurface.ScriptForegroundColor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        bool IMyTextSurface.PreserveAspectRatio
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        float IMyTextSurface.TextPadding
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        Color IMyTextSurface.ScriptBackgroundColor
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        Color IMyTextSurface.ScriptForegroundColor
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
 
         string IMyTextSurface.Name => throw new NotImplementedException();
 
@@ -313,8 +351,18 @@ namespace Tests
 
         string IMyEntity.DisplayName => throw new NotImplementedException();
 
-        bool IMyFunctionalBlock.Enabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        string IMyTerminalBlock.CustomName { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        bool IMyFunctionalBlock.Enabled
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        string IMyTerminalBlock.CustomName
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
 
         string IMyTerminalBlock.CustomNameWithFaction => throw new NotImplementedException();
 
@@ -323,11 +371,36 @@ namespace Tests
         string IMyTerminalBlock.CustomInfo => throw new NotImplementedException();
 
         public string _customData = "";
-        string IMyTerminalBlock.CustomData { get => _customData; set => _customData = value; }
-        bool IMyTerminalBlock.ShowOnHUD { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        bool IMyTerminalBlock.ShowInTerminal { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        bool IMyTerminalBlock.ShowInToolbarConfig { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        bool IMyTerminalBlock.ShowInInventory { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        string IMyTerminalBlock.CustomData
+        {
+            get => _customData;
+
+            set => _customData = value;
+        }
+        bool IMyTerminalBlock.ShowOnHUD
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        bool IMyTerminalBlock.ShowInTerminal
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        bool IMyTerminalBlock.ShowInToolbarConfig
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        bool IMyTerminalBlock.ShowInInventory
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
 
         SerializableDefinitionId IMyCubeBlock.BlockDefinition => throw new NotImplementedException();
 
@@ -396,15 +469,15 @@ namespace Tests
         }
 
         public MySpriteDrawFrame _frame;
-        public MySpriteCollection _spriteCollection = new MySpriteCollection();
+        public MySpriteCollection _spriteCollection;
         MySpriteDrawFrame IMyTextSurface.DrawFrame()
         {
-            this._frame = new MySpriteDrawFrame(f =>
+            _frame = new MySpriteDrawFrame(f =>
             {
                 // dump out the collection
-                this._spriteCollection = f.ToCollection();
+                _spriteCollection = f.ToCollection();
             });
-            return this._frame;
+            return _frame;
         }
 
         void IMyTerminalBlock.GetActions(List<ITerminalAction> resultList, Func<ITerminalAction, bool> collect)
@@ -570,7 +643,12 @@ namespace Tests
 
     public class MockTerminalBlock : IMyTerminalBlock
     {
-        string IMyTerminalBlock.CustomName { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        string IMyTerminalBlock.CustomName
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
 
         string IMyTerminalBlock.CustomNameWithFaction => throw new NotImplementedException();
 
@@ -578,11 +656,36 @@ namespace Tests
 
         string IMyTerminalBlock.CustomInfo => throw new NotImplementedException();
 
-        string IMyTerminalBlock.CustomData { get => "meow"; set => throw new NotImplementedException(); }
-        bool IMyTerminalBlock.ShowOnHUD { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        bool IMyTerminalBlock.ShowInTerminal { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        bool IMyTerminalBlock.ShowInToolbarConfig { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        bool IMyTerminalBlock.ShowInInventory { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        string IMyTerminalBlock.CustomData
+        {
+            get => "meow";
+
+            set => throw new NotImplementedException();
+        }
+        bool IMyTerminalBlock.ShowOnHUD
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        bool IMyTerminalBlock.ShowInTerminal
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        bool IMyTerminalBlock.ShowInToolbarConfig
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
+        bool IMyTerminalBlock.ShowInInventory
+        {
+            get => throw new NotImplementedException();
+
+            set => throw new NotImplementedException();
+        }
 
         SerializableDefinitionId IMyCubeBlock.BlockDefinition => throw new NotImplementedException();
 
@@ -770,7 +873,7 @@ namespace Tests
 
         public void GetBlocksOfType<T>(List<T> blocks, Func<T, bool> collect = null) where T : class
         {
-            foreach (var block in this.blocks)
+            foreach (IMyTerminalBlock block in this.blocks)
             {
                 if (block as T != null && collect(block as T))
                 {
@@ -799,18 +902,17 @@ namespace Tests
     {
         public MockGridProgram(List<IMyTerminalBlock> blocks)
         {
-            this.GridTerminalSystem = new MockGridTerminalSystem(blocks);
-            this.Echo = s => Console.WriteLine(s);
+            GridTerminalSystem = new MockGridTerminalSystem(blocks);
+            Echo = s => Console.WriteLine(s);
         }
     }
 
-    [TestClass]
     public class DroidbotDisplayTests
     {
-        [TestMethod]
+        [Fact]
         public void ScreenScanning()
         {
-            var blocks = new List<IMyTerminalBlock>
+            List<IMyTerminalBlock> blocks = new List<IMyTerminalBlock>
             {
                 new MockMyTextPanel {
                     _customData = "droid\ndisplay: storage"
@@ -818,13 +920,13 @@ namespace Tests
             };
             State s = new State(new MockGridProgram(blocks));
             // we should have 1 screen
-            Assert.AreEqual(1, s.outputs["storage"].Count);
+            Assert.Single(s.outputs["storage"]);
         }
 
-        [TestMethod]
+        [Fact]
         public void SingleScreen()
         {
-            var blocks = new List<IMyTerminalBlock>
+            List<IMyTerminalBlock> blocks = new List<IMyTerminalBlock>
             {
                 new MockMyTextPanel {
                     _customData = "droid\ndisplay: storage"
@@ -835,26 +937,26 @@ namespace Tests
 
             // Check the sprite collection
             // should just be one sprite
-            var screen = s.outputs["storage"][0] as Screen;
-            Assert.IsNotNull(screen);
+            Screen screen = s.outputs["storage"][0] as Screen;
+            Assert.NotNull(screen);
 
-            var mockSurface = screen.surface as MockMyTextPanel;
-            Assert.IsNotNull(mockSurface);
+            MockMyTextPanel mockSurface = screen.surface as MockMyTextPanel;
+            Assert.NotNull(mockSurface);
 
-            var spriteCollection = mockSurface._spriteCollection.Sprites;
-            Assert.AreEqual(1, spriteCollection.Length);
+            MySprite[] spriteCollection = mockSurface._spriteCollection.Sprites;
+            Assert.Single(spriteCollection);
 
             // Now double check the sprite
             // which should be the "[storage]" text
-            Assert.AreEqual(SpriteType.TEXT, spriteCollection[0].Type);
-            Assert.AreEqual(new Vector2(0, 502), spriteCollection[0].Position);
+            Assert.Equal(SpriteType.TEXT, spriteCollection[0].Type);
+            Assert.Equal(new Vector2(0, 502), spriteCollection[0].Position);
         }
 
-        [TestMethod]
+        [Fact]
         public void DualScreenWideStorageWithNoStorage()
         {
-            var blocks = new List<IMyTerminalBlock>
-            {
+            List<IMyTerminalBlock> blocks =
+            [
                 new MockMyTextPanel {
                     _displayNameText = "display 1",
                     _customData = "droid\ndisplay: storage\ndisplayId: main\ndisplayX: 0\ndisplayY: 0"
@@ -863,43 +965,43 @@ namespace Tests
                     _displayNameText = "display 2",
                     _customData = "droid\ndisplay: storage\ndisplayId: main\ndisplayX: 1\ndisplayY: 0"
                 }
-            };
-            State s = new State(new MockGridProgram(blocks));
+            ];
+            State s = new(new MockGridProgram(blocks));
             s.Tick();
 
-            Assert.IsTrue(s.outputs.ContainsKey("storage"));
-            Assert.AreEqual(1, s.outputs["storage"].Count);
-            var compositeDisplay = s.outputs["storage"][0] as CompositeDisplay;
-            Assert.IsNotNull(compositeDisplay);
+            Assert.True(s.outputs.ContainsKey("storage"));
+            Assert.Single(s.outputs["storage"]);
+            CompositeDisplay compositeDisplay = s.outputs["storage"][0] as CompositeDisplay;
+            Assert.NotNull(compositeDisplay);
 
             // double check the viewport is 1024x512
-            Assert.AreEqual(new RectangleF(0, 0, 1024, 512), compositeDisplay.viewport);
+            Assert.Equal(new RectangleF(0, 0, 1024, 512), compositeDisplay.viewport);
 
             // this should only draw to the first screen
-            var screen1 = compositeDisplay.screens[new Point(0, 0)];
-            Assert.IsNotNull(screen1);
-            var mockSurface1 = screen1.surface as MockMyTextPanel;
-            Assert.IsNotNull(mockSurface1);
-            Assert.AreEqual(1, mockSurface1._spriteCollection.Sprites.Length);
+            Screen screen1 = compositeDisplay.screens[new Point(0, 0)];
+            Assert.NotNull(screen1);
+            MockMyTextPanel mockSurface1 = screen1.surface as MockMyTextPanel;
+            Assert.NotNull(mockSurface1);
+            Assert.Single(mockSurface1._spriteCollection.Sprites);
 
             // Now double check the sprite
             // which should be the "[storage]" text
-            Assert.AreEqual(SpriteType.TEXT, mockSurface1._spriteCollection.Sprites[0].Type);
-            Assert.AreEqual(new Vector2(0, 502), mockSurface1._spriteCollection.Sprites[0].Position);
+            Assert.Equal(SpriteType.TEXT, mockSurface1._spriteCollection.Sprites[0].Type);
+            Assert.Equal(new Vector2(0, 502), mockSurface1._spriteCollection.Sprites[0].Position);
 
-            var screen2 = compositeDisplay.screens[new Point(1, 0)];
-            Assert.IsNotNull(screen2);
-            var mockSurface2 = screen2.surface as MockMyTextPanel;
-            Assert.IsNotNull(mockSurface2);
+            Screen screen2 = compositeDisplay.screens[new Point(1, 0)];
+            Assert.NotNull(screen2);
+            MockMyTextPanel mockSurface2 = screen2.surface as MockMyTextPanel;
+            Assert.NotNull(mockSurface2);
 
-            Assert.IsNull(mockSurface2._spriteCollection.Sprites);
+            Assert.Null(mockSurface2._spriteCollection.Sprites);
         }
 
-        [TestMethod]
+        [Fact]
         public void DualScreenWideStorageWithStorage()
         {
-            var blocks = new List<IMyTerminalBlock>
-                    {
+            List<IMyTerminalBlock> blocks =
+            [
                         new MockMyTextPanel {
                             _displayNameText = "display 1",
                             _customData = "droid\ndisplay: storage\ndisplayId: main\ndisplayX: 0\ndisplayY: 0"
@@ -916,45 +1018,45 @@ namespace Tests
                                 _maxVolume = 3000
                             }
                         }
-                    };
+                    ];
             State s = new State(new MockGridProgram(blocks));
             s.Tick();
 
-            Assert.IsTrue(s.outputs.ContainsKey("storage"));
-            Assert.AreEqual(1, s.outputs["storage"].Count);
-            var compositeDisplay = s.outputs["storage"][0] as CompositeDisplay;
-            Assert.IsNotNull(compositeDisplay);
+            Assert.True(s.outputs.ContainsKey("storage"));
+            Assert.Single(s.outputs["storage"]);
+            CompositeDisplay compositeDisplay = s.outputs["storage"][0] as CompositeDisplay;
+            Assert.NotNull(compositeDisplay);
 
             // double check the viewport is 1024x512
-            Assert.AreEqual(new RectangleF(0, 0, 1024, 512), compositeDisplay.viewport);
+            Assert.Equal(new RectangleF(0, 0, 1024, 512), compositeDisplay.viewport);
 
             // this should draw 4 things to the first screen
-            var screen1 = compositeDisplay.screens[new Point(0, 0)];
-            Assert.IsNotNull(screen1);
-            var mockSurface1 = screen1.surface as MockMyTextPanel;
-            Assert.IsNotNull(mockSurface1);
-            Assert.AreEqual(4, mockSurface1._spriteCollection.Sprites.Length);
+            Screen screen1 = compositeDisplay.screens[new Point(0, 0)];
+            Assert.NotNull(screen1);
+            MockMyTextPanel mockSurface1 = screen1.surface as MockMyTextPanel;
+            Assert.NotNull(mockSurface1);
+            Assert.Equal(4, mockSurface1._spriteCollection.Sprites.Length);
 
             // Now double check the sprite positions
-            Assert.AreEqual(new Vector2(0, 0), mockSurface1._spriteCollection.Sprites[0].Position); // "storage"
-            Assert.AreEqual(new Vector2(0, screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[1].Position); // "progress bar"
-            Assert.AreEqual(new Vector2(0, screen1.characterSize.Y * 2), mockSurface1._spriteCollection.Sprites[2].Position); // "0 / 3000"
-            Assert.AreEqual(new Vector2(0, screen1.viewport.Bottom - screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[3].Position); // "[storage]"
+            Assert.Equal(new Vector2(0, 0), mockSurface1._spriteCollection.Sprites[0].Position); // "storage"
+            Assert.Equal(new Vector2(0, screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[1].Position); // "progress bar"
+            Assert.Equal(new Vector2(0, screen1.characterSize.Y * 2), mockSurface1._spriteCollection.Sprites[2].Position); // "0 / 3000"
+            Assert.Equal(new Vector2(0, screen1.viewport.Bottom - screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[3].Position); // "[storage]"
 
             // should just be one drawing for the second screen
-            var screen2 = compositeDisplay.screens[new Point(1, 0)];
-            Assert.IsNotNull(screen2);
-            var mockSurface2 = screen2.surface as MockMyTextPanel;
-            Assert.IsNotNull(mockSurface2);
-            Assert.AreEqual(1, mockSurface2._spriteCollection.Sprites.Length);
-            Assert.AreEqual(new Vector2(-512, screen2.characterSize.Y), mockSurface2._spriteCollection.Sprites[0].Position); // "progress bar"
+            Screen screen2 = compositeDisplay.screens[new Point(1, 0)];
+            Assert.NotNull(screen2);
+            MockMyTextPanel mockSurface2 = screen2.surface as MockMyTextPanel;
+            Assert.NotNull(mockSurface2);
+            Assert.Single(mockSurface2._spriteCollection.Sprites);
+            Assert.Equal(new Vector2(-512, screen2.characterSize.Y), mockSurface2._spriteCollection.Sprites[0].Position); // "progress bar"
         }
 
-        [TestMethod]
+        [Fact]
         public void QuadScreenStorageWithStorage()
         {
-            var blocks = new List<IMyTerminalBlock>
-                    {
+            List<IMyTerminalBlock> blocks =
+                    [
                         new MockMyTextPanel {
                             _displayNameText = "display 1",
                             _customData = "droid\ndisplay: storage\ndisplayId: main\ndisplayX: 0\ndisplayY: 0"
@@ -979,45 +1081,45 @@ namespace Tests
                                 _maxVolume = 3000
                             }
                         }
-                    };
+                    ];
             State s = new State(new MockGridProgram(blocks));
             s.Tick();
 
-            Assert.IsTrue(s.outputs.ContainsKey("storage"));
-            Assert.AreEqual(1, s.outputs["storage"].Count);
-            var compositeDisplay = s.outputs["storage"][0] as CompositeDisplay;
-            Assert.IsNotNull(compositeDisplay);
+            Assert.True(s.outputs.ContainsKey("storage"));
+            Assert.Single(s.outputs["storage"]);
+            CompositeDisplay compositeDisplay = s.outputs["storage"][0] as CompositeDisplay;
+            Assert.NotNull(compositeDisplay);
 
             // double check the viewport is 1024x512
-            Assert.AreEqual(new RectangleF(0, 0, 1024, 1024), compositeDisplay.viewport);
+            Assert.Equal(new RectangleF(0, 0, 1024, 1024), compositeDisplay.viewport);
 
             // this should draw 3 things to the first screen
-            var screen1 = compositeDisplay.screens[new Point(0, 0)];
-            Assert.IsNotNull(screen1);
-            var mockSurface1 = screen1.surface as MockMyTextPanel;
-            Assert.IsNotNull(mockSurface1);
-            Assert.AreEqual(3, mockSurface1._spriteCollection.Sprites.Length);
+            Screen screen1 = compositeDisplay.screens[new Point(0, 0)];
+            Assert.NotNull(screen1);
+            MockMyTextPanel mockSurface1 = screen1.surface as MockMyTextPanel;
+            Assert.NotNull(mockSurface1);
+            Assert.Equal(3, mockSurface1._spriteCollection.Sprites.Length);
 
             // Now double check the sprite positions
-            Assert.AreEqual(new Vector2(0, 0), mockSurface1._spriteCollection.Sprites[0].Position); // "storage"
-            Assert.AreEqual(new Vector2(0, screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[1].Position); // "progress bar"
-            Assert.AreEqual(new Vector2(0, screen1.characterSize.Y * 2), mockSurface1._spriteCollection.Sprites[2].Position); // "0 / 3000"
+            Assert.Equal(new Vector2(0, 0), mockSurface1._spriteCollection.Sprites[0].Position); // "storage"
+            Assert.Equal(new Vector2(0, screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[1].Position); // "progress bar"
+            Assert.Equal(new Vector2(0, screen1.characterSize.Y * 2), mockSurface1._spriteCollection.Sprites[2].Position); // "0 / 3000"
 
             // should just be one drawing for the second screen
-            var screen2 = compositeDisplay.screens[new Point(1, 0)];
-            Assert.IsNotNull(screen2);
-            var mockSurface2 = screen2.surface as MockMyTextPanel;
-            Assert.IsNotNull(mockSurface2);
-            Assert.AreEqual(1, mockSurface2._spriteCollection.Sprites.Length);
-            Assert.AreEqual(new Vector2(-512, screen2.characterSize.Y), mockSurface2._spriteCollection.Sprites[0].Position); // "progress bar"
+            Screen screen2 = compositeDisplay.screens[new Point(1, 0)];
+            Assert.NotNull(screen2);
+            MockMyTextPanel mockSurface2 = screen2.surface as MockMyTextPanel;
+            Assert.NotNull(mockSurface2);
+            Assert.Single(mockSurface2._spriteCollection.Sprites);
+            Assert.Equal(new Vector2(-512, screen2.characterSize.Y), mockSurface2._spriteCollection.Sprites[0].Position); // "progress bar"
 
             // should just be one drawing for the third screen
-            var screen3 = compositeDisplay.screens[new Point(0, 1)];
-            Assert.IsNotNull(screen3);
-            var mockSurface3 = screen3.surface as MockMyTextPanel;
-            Assert.IsNotNull(mockSurface3);
-            Assert.AreEqual(1, mockSurface3._spriteCollection.Sprites.Length);
-            Assert.AreEqual(new Vector2(0, screen3.viewport.Height - screen3.characterSize.Y), mockSurface3._spriteCollection.Sprites[0].Position); // "[storage]"
+            Screen screen3 = compositeDisplay.screens[new Point(0, 1)];
+            Assert.NotNull(screen3);
+            MockMyTextPanel mockSurface3 = screen3.surface as MockMyTextPanel;
+            Assert.NotNull(mockSurface3);
+            Assert.Single(mockSurface3._spriteCollection.Sprites);
+            Assert.Equal(new Vector2(0, screen3.viewport.Height - screen3.characterSize.Y), mockSurface3._spriteCollection.Sprites[0].Position); // "[storage]"
         }
     }
 }

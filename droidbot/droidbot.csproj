@@ -1,0 +1,69 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>6</LangVersion>
+    <Platform>AMD64</Platform>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Sandbox.Common">
+      <HintPath>C:\Users\daniel\Downloads\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\Sandbox.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Sandbox.Game">
+      <HintPath>C:\Users\daniel\Downloads\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\Sandbox.Game.dll</HintPath>
+    </Reference>
+    <Reference Include="SpaceEngineers.Game">
+      <HintPath>C:\Users\daniel\Downloads\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\SpaceEngineers.Game.dll</HintPath>
+    </Reference>
+    <Reference Include="SpaceEngineers.ObjectBuilders">
+      <HintPath>C:\Users\daniel\Downloads\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\SpaceEngineers.ObjectBuilders.dll</HintPath>
+    </Reference>
+    <Reference Include="SpaceEngineersDedicated">
+      <HintPath>C:\Users\daniel\Downloads\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\SpaceEngineersDedicated.exe</HintPath>
+    </Reference>
+    <Reference Include="VRage">
+      <HintPath>C:\Users\daniel\Downloads\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.dll</HintPath>
+    </Reference>
+    <Reference Include="VRage.Game">
+      <HintPath>C:\Users\daniel\Downloads\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Game.dll</HintPath>
+    </Reference>
+    <Reference Include="VRage.Library">
+      <HintPath>C:\Users\daniel\Downloads\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Library.dll</HintPath>
+    </Reference>
+    <Reference Include="VRage.Math">
+      <HintPath>C:\Users\daniel\Downloads\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.Math.dll</HintPath>
+    </Reference>
+    <Reference Include="VRage.UserInterface">
+      <HintPath>C:\Users\daniel\Downloads\steamapps\common\SpaceEngineersDedicatedServer\DedicatedServer64\VRage.UserInterface.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <Target Name="FilterSections" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <!-- Define the input file(s) and output file(s) -->
+      <InputFiles Include="display.cs" />
+      <OutputFiles Include="FilteredOutputFile.cs" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <StartPattern>// BEGIN FILTER</StartPattern>
+      <EndPattern>// END FILTER</EndPattern>
+    </PropertyGroup>
+
+    <!-- Loop over input files -->
+    <CreateItem Include="@(InputFiles)">
+      <Output TaskParameter="Include" ItemName="InputFile" />
+    </CreateItem>
+
+    <!-- Filter out sections -->
+    <Message Importance="High" Text="Filtering sections from: %(InputFile.Identity)" />
+    <Exec
+      Command="findstr /V /R /C:&quot;// FILTER&quot; %(InputFile.Identity) &gt; ../dist/%(InputFile.Identity)" />
+  </Target>
+
+</Project>

@@ -1,10 +1,6 @@
-obj/*
-SpaceEngineers/obj/*
-
 .vs/**
 packages/**
-SpaceEngineers/.vs/SpaceEngineers.csproj.dtbcache.json
-SpaceEngineers/bin/**
-SpaceEngineers/obj/**
-Tests/bin/**
-Tests/obj/**
+droidbot/bin/**
+droidbot/obj/**
+droidbot.tests/bin/**
+droidbot.tests/obj/**

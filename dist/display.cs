@@ -1,27 +1,5 @@
-using System;
-using System.Linq;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
 
-using VRageMath;
-using VRage.Game;
-using VRage.Collections;
-using Sandbox.ModAPI.Ingame;
-using VRage.Game.Components;
-using VRage.Game.ModAPI.Ingame;
-using Sandbox.ModAPI.Interfaces;
-using Sandbox.Game.EntityComponents;
-using SpaceEngineers.Game.ModAPI.Ingame;
-using VRage.Game.ObjectBuilders.Definitions;
-using Sandbox.Game.GameSystems;
-using VRage.Game.GUI.TextPanel;
-using VRage;
-using VRage.Utils;
-using Sandbox.Game.Entities.Character.Components;
 
-namespace Droidbot.Display
-{
     public abstract class Surface
     {
         public RectangleF viewport = new RectangleF();
@@ -450,10 +428,6 @@ namespace Droidbot.Display
         }
     };
 
-
-    public class Program : MyGridProgram
-    {
-
         State _state;
         public Program()
         {
@@ -476,6 +450,3 @@ namespace Droidbot.Display
         {
             _state.Tick();
         }
-    }
-
-}
