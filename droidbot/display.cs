@@ -459,7 +459,7 @@ namespace Droidbot.Display // FILTER
 
             var target = 1000;
 
-            var surfaceFilter = s.customData.GetValueOrDefault("detail", "").Split(",");
+            var surfaceFilter = s.customData.GetValueOrDefault("detail", "").Split(',');
 
             // calculate padding for the prefix
             var prefixPadding = 0;
