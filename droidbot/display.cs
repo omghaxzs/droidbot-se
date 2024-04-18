@@ -20,6 +20,8 @@ namespace Droidbot.Display // FILTER
         //public string displayId;
         //public Point displayCoords;
 
+        public Dictionary<string, string> customData;
+
         public abstract void BeginDraw();
         public abstract void DrawText(string text, Vector2 position, Color color, TextAlignment alignment);
         public abstract void EndDraw();
@@ -45,12 +47,11 @@ namespace Droidbot.Display // FILTER
             DrawText(finalString, pos, color, TextAlignment.LEFT);
         }
 
-        public void DrawProgressBarWithText(Vector2 pos, MyFixedPoint cur, MyFixedPoint total, Color color, string prefix)
+        public void DrawProgressBar(Vector2 pos, MyFixedPoint cur, MyFixedPoint total, Color color, string prefix, string suffix)
         {
             var prefixString = prefix + " [";
             var finalString = prefixString;
-            var suffixString = cur.ToString() + " / " + total.ToString();
-            var availableCharLength = maxCharacterLength - prefixString.Length - suffixString.Length - 2; // -1 for the last ]
+            var availableCharLength = maxCharacterLength - prefixString.Length - suffix.Length - 3; // -1 for the last ]
 
             var ratio = (float)cur.ToIntSafe() / (float)total.ToIntSafe();
             var filledCharLength = (int)(availableCharLength * ratio);
@@ -65,7 +66,7 @@ namespace Droidbot.Display // FILTER
                     finalString += " ";
                 }
             }
-            finalString += "] " + suffixString;
+            finalString += "] " + suffix;
             DrawText(finalString, pos, color, TextAlignment.LEFT);
         }
     }
@@ -104,7 +105,7 @@ namespace Droidbot.Display // FILTER
                 Data = text,
                 Position = position + viewport.Position,
                 RotationOrScale = fontSize /* 80 % of the font's default size */,
-                Color = color,
+                Color = surface.FontColor,
                 Alignment = alignment /* Center the text on the position */,
                 FontId = "Monospace"
             };
@@ -172,21 +173,6 @@ namespace Droidbot.Display // FILTER
             {
                 s.Value.EndDraw();
             }
-        }
-
-        private KeyValuePair<Point, Screen> GetScreenForPoint(Vector2 p)
-        {
-            var ret = screens.FirstOrDefault(pair =>
-            {
-                // generate a modified viewport with the correct X/Y positions
-                var modifiedViewport = new RectangleF(pair.Key.X * pair.Value.viewport.Width, pair.Key.Y * pair.Value.viewport.Height, pair.Value.viewport.Width, pair.Value.viewport.Height);
-                //Console.WriteLine("- evaluating screen {0} for point {1}\n-- viewport: {2}", pair, p, modifiedViewport);
-                return p.X >= modifiedViewport.X && p.X <= modifiedViewport.Right && p.Y >= modifiedViewport.Y && p.Y <= modifiedViewport.Right;
-            });
-
-            //Console.WriteLine("point {0} returned screen {1}", p, ret);
-
-            return ret;
         }
 
         private RectangleF CalculateTextBox(string text, Vector2 position, TextAlignment alignment)
@@ -270,7 +256,6 @@ namespace Droidbot.Display // FILTER
         public Dictionary<string, List<Surface>> outputs = new Dictionary<string, List<Surface>>();
         public Dictionary<string, CompositeDisplay> displays = new Dictionary<string, CompositeDisplay>();
         public List<MyItemType> itemTypes = new List<MyItemType>();
-        public int maxItemTypeTextLength = 0;
         public Dictionary<MyItemType, MyFixedPoint> itemCounts = new Dictionary<MyItemType, MyFixedPoint>();
         public Dictionary<MyItemType, MyFixedPoint> itemTargets = new Dictionary<MyItemType, MyFixedPoint>();
 
@@ -304,6 +289,7 @@ namespace Droidbot.Display // FILTER
                     PrepareTextSurfaceForSprites(screen);
 
                     Screen s = new Screen(screen);
+                    s.customData = customData;
 
                     // check to see if there's a display
                     if (displayId != null)
@@ -333,6 +319,7 @@ namespace Droidbot.Display // FILTER
                         if (!this.displays.ContainsKey(displayId))
                         {
                             this.displays.Add(displayId, new CompositeDisplay(displayId));
+                            this.displays[displayId].customData = customData;
                             this.outputs[display].Add(this.displays[displayId]);
                         }
 
@@ -365,11 +352,6 @@ namespace Droidbot.Display // FILTER
                     {
                         this.itemTypes.Add(itemType);
                         this.itemCounts[itemType] = 0;
-                        var typeLength = String.Format(" {0} {1}", itemType.SubtypeId, itemType.TypeId.Replace("MyObjectBuilder_", "")).Length;
-                        if (typeLength > this.maxItemTypeTextLength)
-                        {
-                            this.maxItemTypeTextLength = typeLength;
-                        }
                     }
                 }
             }
@@ -475,10 +457,43 @@ namespace Droidbot.Display // FILTER
         {
             var posY = 0.0f;
 
+            var target = 1000;
+
+            var surfaceFilter = s.customData.GetValueOrDefault("detail", "").Split(",");
+
+            // calculate padding for the prefix
+            var prefixPadding = 0;
+            var suffixPadding = 0;
+            foreach (var itemCountPair in this.itemCounts)
+            {
+                var surfaceFilterMatch = itemCountPair.Key.TypeId.Replace("MyObjectBuilder_", "").ToLower();
+                if (surfaceFilter != null && !surfaceFilter.Contains(surfaceFilterMatch))
+                {
+                    continue;
+                }
+                var prefixLength = String.Format(" {0} {1}", itemCountPair.Key.SubtypeId, itemCountPair.Key.TypeId.Replace("MyObjectBuilder_", "")).Length;
+                var suffixLength = String.Format("{0} / {1}", itemCountPair.Value, target).Length;
+                if (prefixLength > prefixPadding)
+                {
+                    prefixPadding = prefixLength;
+                }
+                if (suffixLength > suffixPadding)
+                {
+                    suffixPadding = suffixLength;
+                }
+            }
+
             // go through each of our item types
             foreach (var itemCountPair in this.itemCounts)
             {
-                s.DrawProgressBarWithText(new Vector2(0, posY), itemCountPair.Value, 1000, Color.White, String.Format("{0," + maxItemTypeTextLength + "}", String.Format(" {0} {1}", itemCountPair.Key.SubtypeId.ToLower(), itemCountPair.Key.TypeId.Replace("MyObjectBuilder_", "").ToLower())));
+                var surfaceFilterMatch = itemCountPair.Key.TypeId.Replace("MyObjectBuilder_", "").ToLower();
+                if (surfaceFilter != null && !surfaceFilter.Contains(surfaceFilterMatch))
+                {
+                    continue;
+                }
+                var prefix = String.Format("{0," + prefixPadding + "}", String.Format(" {0} {1}", itemCountPair.Key.SubtypeId.ToLower(), itemCountPair.Key.TypeId.Replace("MyObjectBuilder_", "").ToLower()));
+                var suffix = String.Format("{0," + suffixPadding + "}", String.Format("{0} / {1}", itemCountPair.Value, target));
+                s.DrawProgressBar(new Vector2(0, posY), itemCountPair.Value, target, Color.White, prefix, suffix);
                 posY += s.characterSize.Y + 2;
             }
 
