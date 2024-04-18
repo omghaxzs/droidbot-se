@@ -38,7 +38,7 @@ namespace Droidbot.Display // FILTER
                 }
                 else
                 {
-                    finalString += "░";
+                    finalString += " ";
                 }
             }
             finalString += "]";
@@ -50,7 +50,7 @@ namespace Droidbot.Display // FILTER
             var prefixString = prefix + " [";
             var finalString = prefixString;
             var suffixString = cur.ToString() + " / " + total.ToString();
-            var availableCharLength = maxCharacterLength - prefixString.Length - suffixString.Length - 1; // -1 for the last ]
+            var availableCharLength = maxCharacterLength - prefixString.Length - suffixString.Length - 2; // -1 for the last ]
 
             var ratio = (float)cur.ToIntSafe() / (float)total.ToIntSafe();
             var filledCharLength = (int)(availableCharLength * ratio);
@@ -62,7 +62,7 @@ namespace Droidbot.Display // FILTER
                 }
                 else
                 {
-                    finalString += "░";
+                    finalString += " ";
                 }
             }
             finalString += "] " + suffixString;
@@ -270,6 +270,7 @@ namespace Droidbot.Display // FILTER
         public Dictionary<string, List<Surface>> outputs = new Dictionary<string, List<Surface>>();
         public Dictionary<string, CompositeDisplay> displays = new Dictionary<string, CompositeDisplay>();
         public List<MyItemType> itemTypes = new List<MyItemType>();
+        public int maxItemTypeTextLength = 0;
         public Dictionary<MyItemType, MyFixedPoint> itemCounts = new Dictionary<MyItemType, MyFixedPoint>();
         public Dictionary<MyItemType, MyFixedPoint> itemTargets = new Dictionary<MyItemType, MyFixedPoint>();
 
@@ -357,18 +358,33 @@ namespace Droidbot.Display // FILTER
             foreach (var storage in this.storage)
             {
                 var acceptedItems = new List<MyItemType>();
-                storage.GetInventory().GetAcceptedItems(acceptedItems);
+                storage.GetInventory().GetAcceptedItems(acceptedItems, it => it.TypeId == "MyObjectBuilder_Ore" || it.TypeId == "MyObjectBuilder_Ingot" || it.TypeId == "MyObjectBuilder_Component");
                 foreach (var itemType in acceptedItems)
                 {
                     if (!this.itemTypes.Contains(itemType))
                     {
                         this.itemTypes.Add(itemType);
                         this.itemCounts[itemType] = 0;
+                        var typeLength = String.Format(" {0} {1}", itemType.SubtypeId, itemType.TypeId.Replace("MyObjectBuilder_", "")).Length;
+                        if (typeLength > this.maxItemTypeTextLength)
+                        {
+                            this.maxItemTypeTextLength = typeLength;
+                        }
                     }
                 }
             }
 
-            // now go through all of our item types and query each of our storage
+            RefreshItemCounts();
+        }
+
+        public void Log(string text)
+        {
+            this.prog.Echo(text);
+        }
+
+        public void RefreshItemCounts()
+        {
+            //go through all of our item types and query each of our storage
             foreach (var itemType in this.itemTypes)
             {
                 this.itemCounts[itemType] = 0;
@@ -379,13 +395,9 @@ namespace Droidbot.Display // FILTER
             }
         }
 
-        public void Log(string text)
-        {
-            this.prog.Echo(text);
-        }
-
         public void Tick()
         {
+            RefreshItemCounts();
             // go through all of our outputs and render them
             foreach (var outputs in this.outputs)
             {
@@ -466,8 +478,8 @@ namespace Droidbot.Display // FILTER
             // go through each of our item types
             foreach (var itemCountPair in this.itemCounts)
             {
-                s.DrawProgressBarWithText(new Vector2(0, posY), itemCountPair.Value, 1000, Color.White, itemCountPair.Key.SubtypeId.ToUpper());
-                posY += s.characterSize.Y;
+                s.DrawProgressBarWithText(new Vector2(0, posY), itemCountPair.Value, 1000, Color.White, String.Format("{0," + maxItemTypeTextLength + "}", String.Format(" {0} {1}", itemCountPair.Key.SubtypeId.ToLower(), itemCountPair.Key.TypeId.Replace("MyObjectBuilder_", "").ToLower())));
+                posY += s.characterSize.Y + 2;
             }
 
             // bottom part
