@@ -39,9 +39,19 @@ namespace display
 
         MyInventoryItem? IMyInventory.FindItem(MyItemType itemType) => throw new NotImplementedException();
 
-        void IMyInventory.GetAcceptedItems(List<MyItemType> itemsTypes, Func<MyItemType, bool> filter) => throw new NotImplementedException();
+        public List<MyItemType> _acceptedItems = new List<MyItemType>();
+        void IMyInventory.GetAcceptedItems(List<MyItemType> itemsTypes, Func<MyItemType, bool> filter)
+        {
+            foreach (var item in _acceptedItems)
+            {
+                if (filter == null || (filter != null && filter(item)))
+                {
+                    itemsTypes.Add(item);
+                }
+            }
+        }
 
-        MyFixedPoint IMyInventory.GetItemAmount(MyItemType itemType) => throw new NotImplementedException();
+        MyFixedPoint IMyInventory.GetItemAmount(MyItemType itemType) => 0;
 
         MyInventoryItem? IMyInventory.GetItemAt(int index) => throw new NotImplementedException();
 
@@ -1120,6 +1130,54 @@ namespace display
             Assert.NotNull(mockSurface3);
             Assert.Single(mockSurface3._spriteCollection.Sprites);
             Assert.Equal(new Vector2(0, screen3.viewport.Height - screen3.characterSize.Y), mockSurface3._spriteCollection.Sprites[0].Position); // "[storage]"
+        }
+
+        [Fact]
+        public void DualScreenWideDetailWithStorage()
+        {
+            List<IMyTerminalBlock> blocks =
+            [
+                        new MockMyTextPanel {
+                            _displayNameText = "display 1",
+                            _customData = "droid\ndisplay: itemdetail\ndisplayId: main\ndisplayX: 0\ndisplayY: 0"
+                        },
+                        new MockMyTextPanel {
+                            _displayNameText = "display 2",
+                            _customData = "droid\ndisplay: itemdetail\ndisplayId: main\ndisplayX: 1\ndisplayY: 0"
+                        },
+                        new MockMyCargoContainer {
+                            _displayNameText = "storage",
+                            _customData = "droid",
+                            _inventory = new MockMyInventory {
+                                _acceptedItems = [
+                                    MyItemType.MakeOre("uranium")
+                                ],
+                                _currentVolume = 0,
+                                _maxVolume = 3000
+                            }
+                        }
+                    ];
+            State s = new State(new MockGridProgram(blocks));
+            s.Tick();
+
+            Assert.True(s.outputs.ContainsKey("itemdetail"));
+            Assert.Single(s.outputs["itemdetail"]);
+            CompositeDisplay compositeDisplay = s.outputs["itemdetail"][0] as CompositeDisplay;
+            Assert.NotNull(compositeDisplay);
+
+            // double check the viewport is 1024x512
+            Assert.Equal(new RectangleF(0, 0, 1024, 512), compositeDisplay.viewport);
+
+            // this should draw 2 things to the first screen
+            Screen screen1 = compositeDisplay.screens[new Point(0, 0)];
+            Assert.NotNull(screen1);
+            MockMyTextPanel mockSurface1 = screen1.surface as MockMyTextPanel;
+            Assert.NotNull(mockSurface1);
+            Assert.Equal(2, mockSurface1._spriteCollection.Sprites.Length);
+
+            // Now double check the sprite positions
+            Assert.Equal(new Vector2(0, 0), mockSurface1._spriteCollection.Sprites[0].Position); // "uranium thing"
+            Assert.Equal(new Vector2(0, screen1.viewport.Bottom - screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[1].Position); // "[item detail]"
         }
     }
 }

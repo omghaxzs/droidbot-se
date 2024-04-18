@@ -5,14 +5,58 @@
         public RectangleF viewport = new RectangleF();
         public int maxCharacterLength = 0;
         public Vector2 characterSize;
-        public float fontSize = 0.75f;
+        public float fontSize = 1.0f;
         //public string displayId;
         //public Point displayCoords;
 
         public abstract void BeginDraw();
         public abstract void DrawText(string text, Vector2 position, Color color, TextAlignment alignment);
-        public abstract void DrawProgressBar(Vector2 pos, MyFixedPoint cur, MyFixedPoint total, Color color);
         public abstract void EndDraw();
+
+        public void DrawProgressBar(Vector2 pos, MyFixedPoint cur, MyFixedPoint total, Color color)
+        {
+            var finalString = "[";
+            var maxCharLength = maxCharacterLength - finalString.Length - 1; // -1 for the final ]
+            var ratio = (float)cur.ToIntSafe() / (float)total.ToIntSafe();
+            var filledCharLength = (int)(maxCharLength * ratio);
+            for (var i = 0; i < maxCharLength; i++)
+            {
+                if (i < filledCharLength)
+                {
+                    finalString += "█";
+                }
+                else
+                {
+                    finalString += "░";
+                }
+            }
+            finalString += "]";
+            DrawText(finalString, pos, color, TextAlignment.LEFT);
+        }
+
+        public void DrawProgressBarWithText(Vector2 pos, MyFixedPoint cur, MyFixedPoint total, Color color, string prefix)
+        {
+            var prefixString = prefix + " [";
+            var finalString = prefixString;
+            var suffixString = cur.ToString() + " / " + total.ToString();
+            var availableCharLength = maxCharacterLength - prefixString.Length - suffixString.Length - 1; // -1 for the last ]
+
+            var ratio = (float)cur.ToIntSafe() / (float)total.ToIntSafe();
+            var filledCharLength = (int)(availableCharLength * ratio);
+            for (var i = 0; i < availableCharLength; i++)
+            {
+                if (i < filledCharLength)
+                {
+                    finalString += "█";
+                }
+                else
+                {
+                    finalString += "░";
+                }
+            }
+            finalString += "] " + suffixString;
+            DrawText(finalString, pos, color, TextAlignment.LEFT);
+        }
     }
 
     public class Screen : Surface
@@ -55,27 +99,6 @@
             };
             // Add the sprite to the frame
             frame.Add(sprite);
-        }
-
-        public override void DrawProgressBar(Vector2 pos, MyFixedPoint cur, MyFixedPoint total, Color color)
-        {
-            var finalString = "[";
-            var maxCharLength = maxCharacterLength - 2;
-            var ratio = (float)cur.ToIntSafe() / (float)total.ToIntSafe();
-            var filledCharLength = (int)(maxCharLength * ratio);
-            for (var i = 0; i < maxCharLength; i++)
-            {
-                if (i < filledCharLength)
-                {
-                    finalString += "=";
-                }
-                else
-                {
-                    finalString += " ";
-                }
-            }
-            finalString += "]";
-            DrawText(finalString, pos, color, TextAlignment.LEFT);
         }
     }
 
@@ -220,28 +243,6 @@
                 }
             }
         }
-
-        public override void DrawProgressBar(Vector2 pos, MyFixedPoint cur, MyFixedPoint total, Color color)
-        {
-            var finalString = "[";
-            var maxCharLength = maxCharacterLength - 2;
-            var ratio = (float)cur.ToIntSafe() / (float)total.ToIntSafe();
-            var filledCharLength = (int)(maxCharLength * ratio);
-            for (var i = 0; i < maxCharLength; i++)
-            {
-                if (i < filledCharLength)
-                {
-                    finalString += "=";
-                }
-                else
-                {
-                    finalString += " ";
-                }
-            }
-            finalString += "]";
-            DrawText(finalString, pos, color, TextAlignment.LEFT);
-        }
-
     }
 
     public class State
@@ -256,16 +257,19 @@
 
         public MyGridProgram prog;
         public Dictionary<string, List<Surface>> outputs = new Dictionary<string, List<Surface>>();
-
         public Dictionary<string, CompositeDisplay> displays = new Dictionary<string, CompositeDisplay>();
+        public List<MyItemType> itemTypes = new List<MyItemType>();
+        public Dictionary<MyItemType, MyFixedPoint> itemCounts = new Dictionary<MyItemType, MyFixedPoint>();
+        public Dictionary<MyItemType, MyFixedPoint> itemTargets = new Dictionary<MyItemType, MyFixedPoint>();
 
         public State(MyGridProgram p)
         {
             VISUALS = new Dictionary<string, RenderOutput>
             {
-                { "storage", this.DrawStorageInfo }
+                { "storage", this.DrawStorageInfo },
+                { "itemdetail", this.DrawItemDetail }
             };
-            this.fontSize = 0.75f;
+            this.fontSize = 1.0f;
             this.textColor = Color.Yellow;
             this.prog = p;
             this.grid = p.GridTerminalSystem;
@@ -337,6 +341,31 @@
 
             // grab all storage
             this.grid.GetBlocksOfType(this.storage, s => s.CustomData.StartsWith("droid"));
+
+            // get item types and put em in our list
+            foreach (var storage in this.storage)
+            {
+                var acceptedItems = new List<MyItemType>();
+                storage.GetInventory().GetAcceptedItems(acceptedItems);
+                foreach (var itemType in acceptedItems)
+                {
+                    if (!this.itemTypes.Contains(itemType))
+                    {
+                        this.itemTypes.Add(itemType);
+                        this.itemCounts[itemType] = 0;
+                    }
+                }
+            }
+
+            // now go through all of our item types and query each of our storage
+            foreach (var itemType in this.itemTypes)
+            {
+                this.itemCounts[itemType] = 0;
+                foreach (var storage in this.storage)
+                {
+                    this.itemCounts[itemType] += storage.GetInventory().GetItemAmount(itemType);
+                }
+            }
         }
 
         public void Log(string text)
@@ -417,6 +446,21 @@
 
             // bottom part
             s.DrawText("[storage]", new Vector2(0, s.viewport.Size.Y - s.characterSize.Y), textColor, TextAlignment.LEFT);
+        }
+
+        public void DrawItemDetail(Surface s)
+        {
+            var posY = 0.0f;
+
+            // go through each of our item types
+            foreach (var itemCountPair in this.itemCounts)
+            {
+                s.DrawProgressBarWithText(new Vector2(0, posY), itemCountPair.Value, 1000, Color.White, itemCountPair.Key.SubtypeId.ToUpper());
+                posY += s.characterSize.Y;
+            }
+
+            // bottom part
+            s.DrawText("[item detail]", new Vector2(0, s.viewport.Size.Y - s.characterSize.Y), textColor, TextAlignment.LEFT);
         }
 
         public void PrepareTextSurfaceForSprites(IMyTextSurface textSurface)
