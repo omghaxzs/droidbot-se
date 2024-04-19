@@ -22,9 +22,34 @@ namespace Droidbot.Display // FILTER
 
         public Dictionary<string, string> customData;
 
+        public Vector4 padding = new Vector4(0.0f);
+
         public abstract void BeginDraw();
         public abstract void DrawText(string text, Vector2 position, Color color, TextAlignment alignment);
         public abstract void EndDraw();
+
+        public Surface(Dictionary<string, string> custom)
+        {
+            customData = custom;
+
+            try
+            {
+                fontSize = float.Parse(customData.GetValueOrDefault("fontSize", fontSize.ToString()));
+            }
+            catch (Exception e)
+            {
+                // do nothing
+            }
+
+            try
+            {
+                padding.X = float.Parse(customData.GetValueOrDefault("paddingLeft", "0"));
+                padding.Y = float.Parse(customData.GetValueOrDefault("paddingRight", "0"));
+                padding.Z = float.Parse(customData.GetValueOrDefault("paddingTop", "0"));
+                padding.W = float.Parse(customData.GetValueOrDefault("paddingBottom", "0"));
+            }
+            catch (Exception e) { }
+        }
 
         public void DrawProgressBar(Vector2 pos, MyFixedPoint cur, MyFixedPoint total, Color color)
         {
@@ -76,8 +101,9 @@ namespace Droidbot.Display // FILTER
         public IMyTextSurface surface;
         private MySpriteDrawFrame frame;
 
-        public Screen(IMyTextSurface surface)
+        public Screen(IMyTextSurface surface, Dictionary<string, string> custom) : base(custom)
         {
+
             this.surface = surface;
             this.characterSize = surface.MeasureStringInPixels(new StringBuilder("w"), "Monospace", this.fontSize);
             this.viewport = new RectangleF((surface.TextureSize - surface.SurfaceSize) / 2f,
@@ -103,7 +129,7 @@ namespace Droidbot.Display // FILTER
             {
                 Type = SpriteType.TEXT,
                 Data = text,
-                Position = position + viewport.Position,
+                Position = position + viewport.Position + new Vector2(padding.X, padding.Y),
                 RotationOrScale = fontSize /* 80 % of the font's default size */,
                 Color = surface.ScriptForegroundColor,
                 Alignment = alignment /* Center the text on the position */,
@@ -121,7 +147,7 @@ namespace Droidbot.Display // FILTER
         private int maxX = 0;
         private int maxY = 0;
 
-        public CompositeDisplay(string id)
+        public CompositeDisplay(string id, Dictionary<string, string> custom) : base(custom)
         {
             this.id = id;
         }
@@ -291,7 +317,7 @@ namespace Droidbot.Display // FILTER
                     // Prepare the screen
                     PrepareTextSurfaceForSprites(screen);
 
-                    Screen s = new Screen(screen);
+                    Screen s = new Screen(screen, customData);
                     s.customData = customData;
 
                     // check to see if there's a display
@@ -321,7 +347,7 @@ namespace Droidbot.Display // FILTER
                         // does the display exist already?
                         if (!this.displays.ContainsKey(displayId))
                         {
-                            this.displays.Add(displayId, new CompositeDisplay(displayId));
+                            this.displays.Add(displayId, new CompositeDisplay(displayId, customData));
                             this.displays[displayId].customData = customData;
                             this.outputs[display].Add(this.displays[displayId]);
                         }
