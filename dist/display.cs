@@ -276,6 +276,8 @@
         public Dictionary<MyItemType, MyFixedPoint> itemCounts = new Dictionary<MyItemType, MyFixedPoint>();
         public Dictionary<MyItemType, MyFixedPoint> itemTargets = new Dictionary<MyItemType, MyFixedPoint>();
 
+        public short tick = 0;
+
         public State(MyGridProgram p)
         {
             VISUALS = new Dictionary<string, RenderOutput>
@@ -355,6 +357,34 @@
                 }
             }
 
+            ScanAllResources();
+            RefreshItemCounts();
+        }
+
+        public void Log(string text)
+        {
+            this.prog.Echo(text);
+        }
+
+        public void RefreshItemCounts()
+        {
+            //go through all of our item types and query each of our storage
+            foreach (var itemType in this.itemTypes)
+            {
+                this.itemCounts[itemType] = 0;
+                foreach (var storage in this.storage)
+                {
+                    this.itemCounts[itemType] += storage.GetInventory().GetItemAmount(itemType);
+                }
+            }
+        }
+
+        public void ScanAllResources() {
+            this.storage.Clear();
+            this.batteries.Clear();
+            this.powerProducers.Clear();
+            this.itemTypes.Clear();
+            this.itemCounts.Clear();
 
             // grab all storage
             this.grid.GetBlocksOfType(this.storage, s => s.CustomData.StartsWith("droid"));
@@ -379,30 +409,14 @@
                     }
                 }
             }
-
-            RefreshItemCounts();
-        }
-
-        public void Log(string text)
-        {
-            this.prog.Echo(text);
-        }
-
-        public void RefreshItemCounts()
-        {
-            //go through all of our item types and query each of our storage
-            foreach (var itemType in this.itemTypes)
-            {
-                this.itemCounts[itemType] = 0;
-                foreach (var storage in this.storage)
-                {
-                    this.itemCounts[itemType] += storage.GetInventory().GetItemAmount(itemType);
-                }
-            }
         }
 
         public void Tick()
         {
+            if (tick % 10 == 0) {
+                ScanAllResources();
+            }
+
             RefreshItemCounts();
             // go through all of our outputs and render them
             foreach (var outputs in this.outputs)
@@ -417,6 +431,7 @@
                     }
                 }
             }
+            tick++;
         }
 
         public Dictionary<string, string> ParseCustomData(IMyTerminalBlock block)
