@@ -83,7 +83,7 @@ namespace Droidbot.Display // FILTER
             this.viewport = new RectangleF((surface.TextureSize - surface.SurfaceSize) / 2f,
                                      surface.SurfaceSize
                                  );
-            this.maxCharacterLength = (int)(viewport.Size.X / characterSize.X) - 1;
+            this.maxCharacterLength = (int)Math.Floor(viewport.Size.X / characterSize.X);
         }
 
         public override void BeginDraw()
@@ -105,7 +105,7 @@ namespace Droidbot.Display // FILTER
                 Data = text,
                 Position = position + viewport.Position,
                 RotationOrScale = fontSize /* 80 % of the font's default size */,
-                Color = surface.FontColor,
+                Color = surface.ScriptForegroundColor,
                 Alignment = alignment /* Center the text on the position */,
                 FontId = "Monospace"
             };
@@ -248,6 +248,8 @@ namespace Droidbot.Display // FILTER
         public delegate void RenderOutput(Surface s);
 
         public List<IMyCargoContainer> storage = new List<IMyCargoContainer>();
+        public List<IMyBatteryBlock> batteries = new List<IMyBatteryBlock>();
+        public List<IMyPowerProducer> powerProducers = new List<IMyPowerProducer>();
         public float fontSize;
         public Color textColor;
         public IMyGridTerminalSystem grid;
@@ -264,7 +266,8 @@ namespace Droidbot.Display // FILTER
             VISUALS = new Dictionary<string, RenderOutput>
             {
                 { "storage", this.DrawStorageInfo },
-                { "itemdetail", this.DrawItemDetail }
+                { "itemdetail", this.DrawItemDetail },
+                { "power", this.DrawPowerOverview }
             };
             this.fontSize = 1.0f;
             this.textColor = Color.Yellow;
@@ -340,6 +343,12 @@ namespace Droidbot.Display // FILTER
 
             // grab all storage
             this.grid.GetBlocksOfType(this.storage, s => s.CustomData.StartsWith("droid"));
+
+            // grab all batteries
+            this.grid.GetBlocksOfType(this.batteries, s => s.CustomData.StartsWith("droid"));
+
+            // grab all power producers
+            this.grid.GetBlocksOfType(this.powerProducers, s => s.CustomData.StartsWith("droid"));
 
             // get item types and put em in our list
             foreach (var storage in this.storage)
@@ -467,7 +476,7 @@ namespace Droidbot.Display // FILTER
             foreach (var itemCountPair in this.itemCounts)
             {
                 var surfaceFilterMatch = itemCountPair.Key.TypeId.Replace("MyObjectBuilder_", "").ToLower();
-                if (surfaceFilter != null && !surfaceFilter.Contains(surfaceFilterMatch))
+                if (surfaceFilter[0] != "" && !surfaceFilter.Contains(surfaceFilterMatch))
                 {
                     continue;
                 }
@@ -487,7 +496,7 @@ namespace Droidbot.Display // FILTER
             foreach (var itemCountPair in this.itemCounts)
             {
                 var surfaceFilterMatch = itemCountPair.Key.TypeId.Replace("MyObjectBuilder_", "").ToLower();
-                if (surfaceFilter != null && !surfaceFilter.Contains(surfaceFilterMatch))
+                if (surfaceFilter[0] != "" && !surfaceFilter.Contains(surfaceFilterMatch))
                 {
                     continue;
                 }
@@ -499,6 +508,43 @@ namespace Droidbot.Display // FILTER
 
             // bottom part
             s.DrawText("[item detail]", new Vector2(0, s.viewport.Size.Y - s.characterSize.Y), textColor, TextAlignment.LEFT);
+        }
+
+        public void DrawPowerOverview(Surface s)
+        {
+            var posY = 0.0f;
+
+            MyFixedPoint currentOutput = 0;
+            MyFixedPoint maxOutput = 0;
+
+            MyFixedPoint currentStoredPower = 0;
+            MyFixedPoint maxStoredPower = 0;
+
+            foreach (var powerProducer in this.powerProducers)
+            {
+                MyFixedPoint convCurr = (MyFixedPoint)powerProducer.CurrentOutput;
+                MyFixedPoint convMax = (MyFixedPoint)powerProducer.MaxOutput;
+                currentOutput += convCurr;
+                maxOutput += convMax;
+            }
+
+            foreach (var battery in this.batteries)
+            {
+                MyFixedPoint convCurr = (MyFixedPoint)battery.CurrentStoredPower;
+                MyFixedPoint convMax = (MyFixedPoint)battery.MaxStoredPower;
+                currentStoredPower += convCurr;
+                maxStoredPower += convMax;
+            }
+
+            var suffix = String.Format("{0} MW / {1} MW", currentOutput, maxOutput);
+            s.DrawProgressBar(new Vector2(0, posY), currentOutput, maxOutput, Color.White, "power output", suffix);
+            posY += s.characterSize.Y * 2;
+
+            suffix = String.Format("{0} MWh / {1} MWh", currentStoredPower, maxStoredPower);
+            s.DrawProgressBar(new Vector2(0, posY), currentStoredPower, maxStoredPower, Color.White, "battery", suffix);
+
+            // bottom part
+            s.DrawText("[power]", new Vector2(0, s.viewport.Size.Y - s.characterSize.Y), textColor, TextAlignment.LEFT);
         }
 
         public void PrepareTextSurfaceForSprites(IMyTextSurface textSurface)

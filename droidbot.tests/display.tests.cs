@@ -79,6 +79,206 @@ namespace display
         }
     }
 
+    public class MockIMyBatteryBlock : MockIMyPowerProducer, IMyBatteryBlock
+    {
+        public bool HasCapacityRemaining => throw new NotImplementedException();
+
+        public float _currentStoredPower = 0;
+        public float CurrentStoredPower => _currentStoredPower;
+
+        public float _maxStoredPower = 0;
+        public float MaxStoredPower => _maxStoredPower;
+
+        public float CurrentInput => throw new NotImplementedException();
+
+        public float MaxInput => throw new NotImplementedException();
+
+        public bool IsCharging => throw new NotImplementedException();
+
+        public ChargeMode _chargeMode = ChargeMode.Auto;
+        public ChargeMode ChargeMode { get => _chargeMode; set => _chargeMode = value; }
+        public bool OnlyRecharge { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool OnlyDischarge { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool SemiautoEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    }
+
+    public class MockIMyPowerProducer : IMyPowerProducer
+    {
+        public float _currentOutput = 0;
+        public float CurrentOutput => _currentOutput;
+
+        public float _maxOutput = 0;
+        public float MaxOutput => _maxOutput;
+
+        public float CurrentOutputRatio => _maxOutput > 0 ? _currentOutput / _maxOutput : 0;
+
+        public bool Enabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string CustomName { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public string CustomNameWithFaction => throw new NotImplementedException();
+
+        public string DetailedInfo => throw new NotImplementedException();
+
+        public string CustomInfo => throw new NotImplementedException();
+
+        public string _customData = "";
+        string IMyTerminalBlock.CustomData { get => _customData; set => _customData = value; }
+
+        public bool ShowOnHUD { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool ShowInTerminal { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool ShowInToolbarConfig { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool ShowInInventory { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public SerializableDefinitionId BlockDefinition => throw new NotImplementedException();
+
+        public IMyCubeGrid CubeGrid => throw new NotImplementedException();
+
+        public string DefinitionDisplayNameText => throw new NotImplementedException();
+
+        public float DisassembleRatio => throw new NotImplementedException();
+
+        public string DisplayNameText => throw new NotImplementedException();
+
+        public bool IsBeingHacked => throw new NotImplementedException();
+
+        public bool IsFunctional => throw new NotImplementedException();
+
+        public bool IsWorking => throw new NotImplementedException();
+
+        public Vector3I Max => throw new NotImplementedException();
+
+        public float Mass => throw new NotImplementedException();
+
+        public Vector3I Min => throw new NotImplementedException();
+
+        public int NumberInGrid => throw new NotImplementedException();
+
+        public MyBlockOrientation Orientation => throw new NotImplementedException();
+
+        public long OwnerId => throw new NotImplementedException();
+
+        public Vector3I Position => throw new NotImplementedException();
+
+        public IMyEntityComponentContainer Components => throw new NotImplementedException();
+
+        public long EntityId => throw new NotImplementedException();
+
+        public string Name => throw new NotImplementedException();
+
+        public string DisplayName => throw new NotImplementedException();
+
+        public bool HasInventory => throw new NotImplementedException();
+
+        public int InventoryCount => throw new NotImplementedException();
+
+        public bool Closed => throw new NotImplementedException();
+
+        public BoundingBoxD WorldAABB => throw new NotImplementedException();
+
+        public BoundingBoxD WorldAABBHr => throw new NotImplementedException();
+
+        public MatrixD WorldMatrix => throw new NotImplementedException();
+
+        public BoundingSphereD WorldVolume => throw new NotImplementedException();
+
+        public BoundingSphereD WorldVolumeHr => throw new NotImplementedException();
+
+        public void GetActions(List<ITerminalAction> resultList, Func<ITerminalAction, bool> collect = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ITerminalAction GetActionWithName(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMyInventory GetInventory()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMyInventory GetInventory(int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetOwnerFactionTag()
+        {
+            throw new NotImplementedException();
+        }
+
+        public MyRelationsBetweenPlayerAndBlock GetPlayerRelationToOwner()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Vector3D GetPosition()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void GetProperties(List<ITerminalProperty> resultList, Func<ITerminalProperty, bool> collect = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ITerminalProperty GetProperty(string id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public MyRelationsBetweenPlayerAndBlock GetUserRelationToOwner(long playerId, MyRelationsBetweenPlayerAndBlock defaultNoUser = MyRelationsBetweenPlayerAndBlock.NoOwnership)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasLocalPlayerAccess()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasPlayerAccess(long playerId, MyRelationsBetweenPlayerAndBlock defaultNoUser = MyRelationsBetweenPlayerAndBlock.NoOwnership)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsSameConstructAs(IMyTerminalBlock other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RequestEnable(bool enable)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SearchActionsOfName(string name, List<ITerminalAction> resultList, Func<ITerminalAction, bool> collect = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetCustomName(string text)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetCustomName(StringBuilder text)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateIsWorking()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateVisual()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class MockMyCargoContainer : IMyCargoContainer
     {
 
@@ -347,11 +547,12 @@ namespace display
 
             set => throw new NotImplementedException();
         }
+        public Color _scriptForegroundColor = Color.White;
         Color IMyTextSurface.ScriptForegroundColor
         {
-            get => throw new NotImplementedException();
+            get => _scriptForegroundColor;
 
-            set => throw new NotImplementedException();
+            set => _scriptForegroundColor = value;
         }
 
         string IMyTextSurface.Name => throw new NotImplementedException();
@@ -588,7 +789,8 @@ namespace display
 
         Vector2 IMyTextSurface.MeasureStringInPixels(StringBuilder text, string font, float scale)
         {
-            return new Vector2(10, 10);
+            scale *= 0.77837837f;
+            return new Vector2((30 * scale) * text.Length, 42 * scale);
         }
 
         void IMyTextSurface.ReadText(StringBuilder buffer, bool append)
@@ -970,7 +1172,7 @@ namespace display
             // Now double check the sprite
             // which should be the "[storage]" text
             Assert.Equal(SpriteType.TEXT, spriteCollection[0].Type);
-            Assert.Equal(new Vector2(0, 502), spriteCollection[0].Position);
+            Assert.Equal(new Vector2(0, screen.viewport.Height - screen.characterSize.Y), spriteCollection[0].Position);
         }
 
         [Fact]
@@ -1008,7 +1210,7 @@ namespace display
             // Now double check the sprite
             // which should be the "[storage]" text
             Assert.Equal(SpriteType.TEXT, mockSurface1._spriteCollection.Sprites[0].Type);
-            Assert.Equal(new Vector2(0, 502), mockSurface1._spriteCollection.Sprites[0].Position);
+            Assert.Equal(new Vector2(0, screen1.viewport.Height - screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[0].Position);
 
             Screen screen2 = compositeDisplay.screens[new Point(1, 0)];
             Assert.NotNull(screen2);
@@ -1298,7 +1500,7 @@ namespace display
 
             // Now double check the sprite positions
             Assert.Equal(new Vector2(0, 0), mockSurface1._spriteCollection.Sprites[0].Position); // "uranium thing"
-            Assert.Equal(new Vector2(0, screen1.viewport.Bottom - screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[3].Position); // "[item detail]"
+            Assert.Equal(new Vector2(0, screen1.viewport.Bottom - screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[2].Position); // "[item detail]"
 
             Assert.True(mockSurface1._spriteCollection.Sprites[0].Data.Length * compositeDisplay.characterSize.X < 1024);
         }
@@ -1352,11 +1554,58 @@ namespace display
             Assert.NotNull(mockSurface1);
             Assert.Equal(4, mockSurface1._spriteCollection.Sprites.Length);
 
-            DumpSurface(mockSurface1);
-
             // Now double check the sprite positions
             Assert.Equal(new Vector2(0, 0), mockSurface1._spriteCollection.Sprites[0].Position); // "uranium thing"
             Assert.Equal(new Vector2(0, screen1.viewport.Bottom - screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[3].Position); // "[item detail]"
+
+            Assert.True(mockSurface1._spriteCollection.Sprites[0].Data.Length * compositeDisplay.characterSize.X < 1024);
+        }
+
+        [Fact]
+        public void DualScreenWidePower()
+        {
+            List<IMyTerminalBlock> blocks =
+            [
+                        new MockMyTextPanel {
+                            _displayNameText = "display 1",
+                            _customData = "droid\ndisplay: power\ndisplayId: main\ndisplayX: 0\ndisplayY: 0"
+                        },
+                        new MockMyTextPanel {
+                            _displayNameText = "display 2",
+                            _customData = "droid\ndisplay: power\ndisplayId: main\ndisplayX: 1\ndisplayY: 0"
+                        },
+                        new MockIMyPowerProducer {
+                            _customData = "droid",
+                            _maxOutput = 1000,
+                            _currentOutput = 1000,
+                        },
+                        new MockIMyBatteryBlock {
+                            _customData = "droid",
+                            _maxStoredPower = 1000,
+                            _currentStoredPower = 500,
+                        }
+                    ];
+            State s = new State(new MockGridProgram(blocks));
+            s.Tick();
+
+            Assert.True(s.outputs.ContainsKey("power"));
+            Assert.Single(s.outputs["power"]);
+            CompositeDisplay compositeDisplay = s.outputs["power"][0] as CompositeDisplay;
+            Assert.NotNull(compositeDisplay);
+
+            // double check the viewport is 1024x512
+            Assert.Equal(new RectangleF(0, 0, 1024, 512), compositeDisplay.viewport);
+
+            // this should draw 2 things to the first screen
+            Screen screen1 = compositeDisplay.screens[new Point(0, 0)];
+            Assert.NotNull(screen1);
+            MockMyTextPanel mockSurface1 = screen1.surface as MockMyTextPanel;
+            Assert.NotNull(mockSurface1);
+            Assert.Equal(3, mockSurface1._spriteCollection.Sprites.Length);
+
+            // Now double check the sprite positions
+            Assert.Equal(new Vector2(0, 0), mockSurface1._spriteCollection.Sprites[0].Position); // "current power"
+            Assert.Equal(new Vector2(0, screen1.viewport.Bottom - screen1.characterSize.Y), mockSurface1._spriteCollection.Sprites[2].Position); // "[power]"
 
             Assert.True(mockSurface1._spriteCollection.Sprites[0].Data.Length * compositeDisplay.characterSize.X < 1024);
         }
