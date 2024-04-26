@@ -1,28 +1,25 @@
-using System; // FILTER
 using System.Linq; // FILTER
-using System.Text; // FILTER
 using System.Collections.Generic; // FILTER
 
-using VRageMath; // FILTER
 using Sandbox.ModAPI.Ingame; // FILTER
-using VRage.Game.GUI.TextPanel; // FILTER
 using VRage; // FILTER
 using VRage.Game.ModAPI.Ingame; // FILTER
+using VRage.Utils; // FILTER
 
 namespace Droidbot.Balance // FILTER
 { // FILTER
 
-// droidbot-se
-// balance
+    // droidbot-se
+    // balance
 
-// this script is designed to move items around different places to keep the conveyor system busy and nothing gets stuck
-// current functionality: 
-// - it will move items from marked Connector block inventories to marked storage
-// - it will move ore items from marked storage to any marked refineries
-// - it will move ingots from any marked refineries to marked storage
+    // this script is designed to move items around different places to keep the conveyor system busy and nothing gets stuck
+    // current functionality: 
+    // - it will move items from marked Connector block inventories to marked storage
+    // - it will move ore items from marked storage to any marked refineries
+    // - it will move ingots from any marked refineries to marked storage
 
-// "marked" in this context means blocks that have custom data starting with "droid". So a storage block with the custom data starting with "droid"
-// will be considered marked storage. Same for refinery blocks, connector blocks, etc...
+    // "marked" in this context means blocks that have custom data starting with "droid". So a storage block with the custom data starting with "droid"
+    // will be considered marked storage. Same for refinery blocks, connector blocks, etc...
     public class State
     {
         public List<IMyCargoContainer> storage = new List<IMyCargoContainer>();
@@ -30,6 +27,9 @@ namespace Droidbot.Balance // FILTER
         public List<IMyShipConnector> connectors = new List<IMyShipConnector>();
         public List<IMyAssembler> assemblers = new List<IMyAssembler>();
         public List<MyItemType> itemTypes = new List<MyItemType>();
+
+        public Dictionary<MyItemType, MyFixedPoint> itemCounts = new Dictionary<MyItemType, MyFixedPoint>();
+        public Dictionary<MyItemType, MyFixedPoint> assemblerQueueCounts = new Dictionary<MyItemType, MyFixedPoint>();
 
         public IMyGridTerminalSystem grid;
         public MyGridProgram prog;
@@ -55,6 +55,7 @@ namespace Droidbot.Balance // FILTER
             this.refineries.Clear();
             this.connectors.Clear();
             this.itemTypes.Clear();
+            this.assemblers.Clear();
 
             // grab all storage
             this.grid.GetBlocksOfType(this.storage, s => s.CustomData.StartsWith("droid"));
@@ -64,6 +65,9 @@ namespace Droidbot.Balance // FILTER
 
             // grab all connectors
             this.grid.GetBlocksOfType(this.connectors, s => s.CustomData.StartsWith("droid"));
+
+            // grab all assemblers
+            this.grid.GetBlocksOfType(this.assemblers, s => s.CustomData.StartsWith("droid"));
 
             // get item types and put em in our list
             foreach (var storage in this.storage)
@@ -78,10 +82,45 @@ namespace Droidbot.Balance // FILTER
                     }
                 }
             }
+
+            RefreshItemCounts();
+            RefreshAssemblerQueueCounts();
+        }
+
+        public void RefreshItemCounts()
+        {
+            //go through all of our item types and query each of our storage
+            foreach (var itemType in this.itemTypes)
+            {
+                this.itemCounts[itemType] = 0;
+                foreach (var storage in this.storage)
+                {
+                    this.itemCounts[itemType] += storage.GetInventory().GetItemAmount(itemType);
+                }
+            }
+        }
+
+        public void RefreshAssemblerQueueCounts()
+        {
+            //go through all of our item types and query each of our storage
+            foreach (var itemType in this.itemTypes)
+            {
+                this.assemblerQueueCounts[itemType] = 0;
+            }
+            foreach (var assembler in this.assemblers)
+            {
+                var queueItems = new List<MyProductionItem>();
+                assembler.GetQueue(queueItems);
+                foreach (var queueItem in queueItems)
+                {
+                    this.assemblerQueueCounts[queueItem.BlueprintId] += queueItem.Amount;
+                }
+            }
         }
 
         public void Tick()
         {
+            RefreshItemCounts();
             if (tick % 10 == 0)
             {
                 ScanAllResources();
@@ -90,13 +129,62 @@ namespace Droidbot.Balance // FILTER
             TransferOreToRefineries();
             TransferIngotsFromRefineriesToStorage();
             TransferStuffFromConnectorsToStorage();
+            TransferComponentsFromAssemblersToStorage();
+
+            EnsureItemTargets();
 
             tick++;
         }
 
+        private void TransferComponentsFromAssemblersToStorage()
+        {
+            // Go through each type of component
+            foreach (var itemType in this.itemTypes)
+            {
+                if (itemType.TypeId == "MyObjectBuilder_Component")
+                {
+                    // Now go through each of our assembler output inventory
+                    foreach (var assembler in this.assemblers)
+                    {
+                        // does it have some?
+                        var itemAmount = assembler.OutputInventory.GetItemAmount(itemType);
+                        if (itemAmount > 0)
+                        {
+                            // Let's put it somewhere
+                            TransferToSomeStorage(assembler.OutputInventory, itemType, itemAmount);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void EnsureItemTargets()
+        {
+            // Go through each type of component
+            foreach (var itemType in this.itemTypes)
+            {
+                if (itemType.TypeId == "MyObjectBuilder_Component")
+                {
+                    if (this.itemCounts[itemType] <= 1000)
+                    {
+                        AssembleSomething(itemType, 10);
+                    }
+                }
+            }
+        }
+
+        private void AssembleSomething(MyItemType itemType, MyFixedPoint v)
+        {
+            // go through each of our assemblers, sorted by whats least
+            if (this.assemblers.Count > 0) {
+                var assembler = this.assemblers.GetRandomItemFromList();
+                assembler.AddQueueItem(itemType, v);
+            }
+        }
+
         private void TransferStuffFromConnectorsToStorage()
         {
-            // Go through each type of ingot
+            // Go through each type of item
             foreach (var itemType in this.itemTypes)
             {
                 // Now go through each of our connectors

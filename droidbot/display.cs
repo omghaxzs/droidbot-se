@@ -7,6 +7,7 @@ using VRageMath; // FILTER
 using Sandbox.ModAPI.Ingame; // FILTER
 using VRage.Game.GUI.TextPanel; // FILTER
 using VRage; // FILTER
+using VRage.Game.ModAPI.Ingame; // FILTER
 
 namespace Droidbot.Display // FILTER
 { // FILTER
