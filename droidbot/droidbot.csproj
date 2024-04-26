@@ -62,7 +62,11 @@
     <!-- Filter out sections -->
     <Message Importance="High" Text="Filtering sections from: %(InputFile.Identity)" />
     <Exec
-      Command="findstr /V /R /C:&quot;// FILTER&quot; %(InputFile.Identity) &gt; ../dist/%(InputFile.Identity)" />
+      Command="findstr /V /R /C:&quot;// FILTER&quot; %(InputFile.Identity) &gt; ../dist/%(InputFile.Identity)_filtered" />
+    <Exec
+      Command="copy ..\dist\%(InputFile.Identity)_filtered /A + .\enums.cs /A ..\dist\%(InputFile.Identity) /A" />
+    <Exec
+      Command="del ..\dist\%(InputFile.Identity)_filtered" />
   </Target>
 
 </Project>

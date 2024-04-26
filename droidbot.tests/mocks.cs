@@ -8,10 +8,47 @@ using VRage.Game;
 using System.Text;
 using VRage.Game.GUI.TextPanel;
 using VRage;
-using System.Collections.Immutable;
 
 namespace droidbot.tests
 {
+
+    public class IMockMyShipConnector : IMockTerminalBlock, IMyShipConnector
+    {
+        public bool ThrowOut { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool CollectAll { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public float PullStrength { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public bool IsLocked => throw new NotImplementedException();
+
+        public bool IsConnected => throw new NotImplementedException();
+
+        public MyShipConnectorStatus Status => throw new NotImplementedException();
+
+        public IMyShipConnector OtherConnector => throw new NotImplementedException();
+
+        public bool IsParkingEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool Enabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public void Connect()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Disconnect()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RequestEnable(bool enable)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ToggleConnect()
+        {
+            throw new NotImplementedException();
+        }
+    }
 
     public class IMockMyEntity : IMyEntity
     {
@@ -1395,12 +1432,82 @@ namespace droidbot.tests
         }
     }
 
+    internal class MockMyIntergridCommunicationSystem : IMyIntergridCommunicationSystem
+    {
+        public long Me => throw new NotImplementedException();
+
+        public IMyUnicastListener UnicastListener => throw new NotImplementedException();
+
+        public void DisableBroadcastListener(IMyBroadcastListener broadcastListener)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void GetBroadcastListeners(List<IMyBroadcastListener> broadcastListeners, Func<IMyBroadcastListener, bool> collect = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsEndpointReachable(long address, TransmissionDistance transmissionDistance = TransmissionDistance.AntennaRelay)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMyBroadcastListener RegisterBroadcastListener(string tag)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SendBroadcastMessage<TData>(string tag, TData data, TransmissionDistance transmissionDistance = TransmissionDistance.AntennaRelay)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SendUnicastMessage<TData>(long addressee, string tag, TData data)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class MockGridProgram : MyGridProgram
     {
         public MockGridProgram(List<IMyTerminalBlock> blocks)
         {
-            GridTerminalSystem = new MockGridTerminalSystem(blocks);
-            Echo = s => Console.WriteLine(s);
+            _gridTerminalSystem = new MockGridTerminalSystem(blocks);
+            _echo = s => Console.WriteLine(s);
+            IGC = new MockMyIntergridCommunicationSystem();
+        }
+
+        public IMyIntergridCommunicationSystem IGC;
+
+        public Func<IMyIntergridCommunicationSystem> IGC_ContextGetter { set => throw new NotImplementedException(); }
+
+        public IMyGridTerminalSystem _gridTerminalSystem;
+        public IMyGridTerminalSystem GridTerminalSystem { get => _gridTerminalSystem; set => _gridTerminalSystem = value; }
+        public IMyProgrammableBlock Me { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string Storage { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public IMyGridProgramRuntimeInfo Runtime { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public Action<string> _echo;
+        public Action<string> Echo { get => _echo; set => _echo = value; }
+
+        public bool HasMainMethod => throw new NotImplementedException();
+
+        public bool HasSaveMethod => throw new NotImplementedException();
+
+        public void Main(string argument)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Main(string argument, UpdateType updateSource)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Save()
+        {
+            throw new NotImplementedException();
         }
     }
 }

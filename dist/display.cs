@@ -1,5 +1,6 @@
 
 
+
     public abstract class Surface
     {
         public RectangleF viewport = new RectangleF();
@@ -259,8 +260,19 @@
 
     public class State
     {
-        readonly Dictionary<string, RenderOutput> VISUALS;
-        public delegate void RenderOutput(Surface s);
+        readonly Dictionary<string, RenderOutput> VISUALS = new Dictionary<string, RenderOutput> {
+                { "storage", DrawStorageInfo },
+                { "itemdetail", DrawItemDetail },
+                { "power", DrawPowerOverview },
+                { "log", DrawLogs }
+        };
+
+        readonly Dictionary<int, EventHandler> EVENT_HANDLERS = new Dictionary<int, EventHandler> {
+                { DroidbotEnums.EVENT_MOVED_ITEMS, HandleMovedItemsEvent },
+        };
+
+        public delegate void RenderOutput(State state, Surface s);
+        public delegate void EventHandler(State state, string data);
 
         public List<IMyCargoContainer> storage = new List<IMyCargoContainer>();
         public List<IMyBatteryBlock> batteries = new List<IMyBatteryBlock>();
@@ -276,20 +288,21 @@
         public Dictionary<MyItemType, MyFixedPoint> itemCounts = new Dictionary<MyItemType, MyFixedPoint>();
         public Dictionary<MyItemType, MyFixedPoint> itemTargets = new Dictionary<MyItemType, MyFixedPoint>();
 
+        public List<string> logMessages = new List<string>(50);
+
+        public IMyBroadcastListener broadcastListener;
+
         public short tick = 0;
 
         public State(MyGridProgram p)
         {
-            VISUALS = new Dictionary<string, RenderOutput>
-            {
-                { "storage", this.DrawStorageInfo },
-                { "itemdetail", this.DrawItemDetail },
-                { "power", this.DrawPowerOverview }
-            };
             this.fontSize = 1.0f;
             this.textColor = Color.Yellow;
             this.prog = p;
             this.grid = p.GridTerminalSystem;
+
+            broadcastListener = p.IGC.RegisterBroadcastListener("droid");
+            broadcastListener.SetMessageCallback("droid");
 
             foreach (var vis in VISUALS)
             {
@@ -379,7 +392,8 @@
             }
         }
 
-        public void ScanAllResources() {
+        public void ScanAllResources()
+        {
             this.storage.Clear();
             this.batteries.Clear();
             this.powerProducers.Clear();
@@ -411,9 +425,16 @@
             }
         }
 
-        public void Tick()
+        public void Tick(string argument, UpdateType updateType)
         {
-            if (tick % 10 == 0) {
+            if (updateType == UpdateType.IGC)
+            {
+                // read broadcast messages
+                ProcessBroadcastMessages();
+            }
+
+            if (tick % 10 == 0)
+            {
                 ScanAllResources();
             }
 
@@ -421,17 +442,32 @@
             // go through all of our outputs and render them
             foreach (var outputs in this.outputs)
             {
-                if (this.VISUALS.ContainsKey(outputs.Key))
+                if (VISUALS.ContainsKey(outputs.Key))
                 {
                     foreach (var output in outputs.Value)
                     {
                         output.BeginDraw();
-                        this.VISUALS[outputs.Key](output);
+                        VISUALS[outputs.Key](this, output);
                         output.EndDraw();
                     }
                 }
             }
             tick++;
+        }
+
+        private void ProcessBroadcastMessages()
+        {
+            // do we have a message?
+            if (broadcastListener.HasPendingMessage)
+            {
+                var myIGCMessage = broadcastListener.AcceptMessage();
+                var data = myIGCMessage.As<MyTuple<int, string>>();
+                // do we have a handler?
+                if (EVENT_HANDLERS.ContainsKey(data.Item1))
+                {
+                    EVENT_HANDLERS[data.Item1](this, data.Item2);
+                }
+            }
         }
 
         public Dictionary<string, string> ParseCustomData(IMyTerminalBlock block)
@@ -457,12 +493,12 @@
             return results;
         }
 
-        public void DrawStorageInfo(Surface s)
+        public static void DrawStorageInfo(State state, Surface s)
         {
             //_state.fontSize += 0.01f;
             var posY = 0.0f;
 
-            foreach (var storage in storage)
+            foreach (var storage in state.storage)
             {
                 var inventory = storage.GetInventory();
                 var ratio = (float)inventory.CurrentVolume.ToIntSafe() / (float)inventory.MaxVolume.ToIntSafe();
@@ -479,20 +515,20 @@
                 {
                     pbColor = Color.Red;
                 }
-                s.DrawText(storage.DisplayNameText, new Vector2(0, posY), textColor, TextAlignment.LEFT);
+                s.DrawText(storage.DisplayNameText, new Vector2(0, posY), state.textColor, TextAlignment.LEFT);
                 posY += s.characterSize.Y;
                 s.DrawProgressBar(new Vector2(0, posY), inventory.CurrentVolume, inventory.MaxVolume, pbColor);
                 posY += s.characterSize.Y;
-                s.DrawText(inventory.CurrentVolume.ToString() + " / " + inventory.MaxVolume.ToString(), new Vector2(0, posY), textColor, TextAlignment.LEFT);
+                s.DrawText(inventory.CurrentVolume.ToString() + " / " + inventory.MaxVolume.ToString(), new Vector2(0, posY), state.textColor, TextAlignment.LEFT);
                 posY += s.characterSize.Y;
                 posY += s.characterSize.Y;
             }
 
             // bottom part
-            s.DrawText("[storage]", new Vector2(0, s.viewport.Size.Y - s.characterSize.Y), textColor, TextAlignment.LEFT);
+            s.DrawText("[storage]", new Vector2(0, s.viewport.Size.Y - s.characterSize.Y), state.textColor, TextAlignment.LEFT);
         }
 
-        public void DrawItemDetail(Surface s)
+        public static void DrawItemDetail(State state, Surface s)
         {
             var posY = 0.0f;
 
@@ -503,7 +539,7 @@
             // calculate padding for the prefix
             var prefixPadding = 0;
             var suffixPadding = 0;
-            foreach (var itemCountPair in this.itemCounts)
+            foreach (var itemCountPair in state.itemCounts)
             {
                 var surfaceFilterMatch = itemCountPair.Key.TypeId.Replace("MyObjectBuilder_", "").ToLower();
                 if (surfaceFilter[0] != "" && !surfaceFilter.Contains(surfaceFilterMatch))
@@ -523,7 +559,7 @@
             }
 
             // go through each of our item types
-            foreach (var itemCountPair in this.itemCounts)
+            foreach (var itemCountPair in state.itemCounts)
             {
                 var surfaceFilterMatch = itemCountPair.Key.TypeId.Replace("MyObjectBuilder_", "").ToLower();
                 if (surfaceFilter[0] != "" && !surfaceFilter.Contains(surfaceFilterMatch))
@@ -537,10 +573,10 @@
             }
 
             // bottom part
-            s.DrawText("[item detail]", new Vector2(0, s.viewport.Size.Y - s.characterSize.Y), textColor, TextAlignment.LEFT);
+            s.DrawText("[item detail]", new Vector2(0, s.viewport.Size.Y - s.characterSize.Y), state.textColor, TextAlignment.LEFT);
         }
 
-        public void DrawPowerOverview(Surface s)
+        public static void DrawPowerOverview(State state, Surface s)
         {
             var posY = 0.0f;
 
@@ -550,7 +586,7 @@
             MyFixedPoint currentStoredPower = 0;
             MyFixedPoint maxStoredPower = 0;
 
-            foreach (var powerProducer in this.powerProducers)
+            foreach (var powerProducer in state.powerProducers)
             {
                 MyFixedPoint convCurr = (MyFixedPoint)powerProducer.CurrentOutput;
                 MyFixedPoint convMax = (MyFixedPoint)powerProducer.MaxOutput;
@@ -558,7 +594,7 @@
                 maxOutput += convMax;
             }
 
-            foreach (var battery in this.batteries)
+            foreach (var battery in state.batteries)
             {
                 MyFixedPoint convCurr = (MyFixedPoint)battery.CurrentStoredPower;
                 MyFixedPoint convMax = (MyFixedPoint)battery.MaxStoredPower;
@@ -574,7 +610,38 @@
             s.DrawProgressBar(new Vector2(0, posY), currentStoredPower, maxStoredPower, Color.White, "battery", suffix);
 
             // bottom part
-            s.DrawText("[power]", new Vector2(0, s.viewport.Size.Y - s.characterSize.Y), textColor, TextAlignment.LEFT);
+            s.DrawText("[power]", new Vector2(0, s.viewport.Size.Y - s.characterSize.Y), state.textColor, TextAlignment.LEFT);
+        }
+
+        public static void DrawLogs(State state, Surface s)
+        {
+            var posY = 0.0f;
+            // how many log messages can we print onto this surface?
+            var numLinesToPrint = (int)Math.Floor(s.viewport.Height / (s.characterSize.Y + 2)) - 1;
+
+            foreach (var line in state.logMessages.Skip(Math.Max(0, state.logMessages.Count - numLinesToPrint)))
+            {
+                s.DrawText(line, new Vector2(0, posY), state.textColor, TextAlignment.LEFT);
+                posY += s.characterSize.Y + 2;
+            }
+
+            // bottom part
+            s.DrawText("[base log]", new Vector2(0, s.viewport.Size.Y - s.characterSize.Y), state.textColor, TextAlignment.LEFT);
+        }
+
+        private static void HandleMovedItemsEvent(State state, string data)
+        {
+            state.ReportLog(data);
+        }
+
+        private void ReportLog(string data)
+        {
+            if (this.logMessages.Count == this.logMessages.Capacity)
+            {
+                // remove the oldest log message
+                this.logMessages.RemoveAt(0);
+            }
+            this.logMessages.Add(data);
         }
 
         public void PrepareTextSurfaceForSprites(IMyTextSurface textSurface)
@@ -606,5 +673,9 @@
 
         public void Main(string argument, UpdateType updateSource)
         {
-            _state.Tick();
+            _state.Tick(argument, updateSource);
         }
+public class DroidbotEnums
+{
+    public const int EVENT_MOVED_ITEMS = 1;
+};

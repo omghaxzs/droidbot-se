@@ -1,14 +1,8 @@
 ﻿using Droidbot.Display;
 using Sandbox.ModAPI.Ingame;
 using VRage.Game.ModAPI.Ingame;
-using VRage.ObjectBuilders;
 using VRageMath;
-using VRage.Game.Components.Interfaces;
-using Sandbox.ModAPI.Interfaces;
-using VRage.Game;
-using System.Text;
 using VRage.Game.GUI.TextPanel;
-using VRage;
 
 namespace droidbot.tests
 {
@@ -50,7 +44,7 @@ namespace droidbot.tests
                 }
             };
                 State s = new State(new MockGridProgram(blocks));
-                s.Tick();
+                s.Tick("", UpdateType.Update10);
 
                 // Check the sprite collection
                 // should just be one sprite
@@ -84,7 +78,7 @@ namespace droidbot.tests
                 }
                 ];
                 State s = new(new MockGridProgram(blocks));
-                s.Tick();
+                s.Tick("", UpdateType.Update10);
 
                 Assert.True(s.outputs.ContainsKey("storage"));
                 Assert.Single(s.outputs["storage"]);
@@ -136,7 +130,7 @@ namespace droidbot.tests
                         }
                         ];
                 State s = new State(new MockGridProgram(blocks));
-                s.Tick();
+                s.Tick("", UpdateType.Update10);
 
                 Assert.True(s.outputs.ContainsKey("storage"));
                 Assert.Single(s.outputs["storage"]);
@@ -198,7 +192,7 @@ namespace droidbot.tests
                         }
                         ];
                 State s = new State(new MockGridProgram(blocks));
-                s.Tick();
+                s.Tick("", UpdateType.Update10);
 
                 Assert.True(s.outputs.ContainsKey("storage"));
                 Assert.Single(s.outputs["storage"]);
@@ -262,7 +256,7 @@ namespace droidbot.tests
                         }
                         ];
                 State s = new State(new MockGridProgram(blocks));
-                s.Tick();
+                s.Tick("", UpdateType.Update10);
 
                 Assert.True(s.outputs.ContainsKey("itemdetail"));
                 Assert.Single(s.outputs["itemdetail"]);
@@ -316,7 +310,7 @@ namespace droidbot.tests
                         }
                         ];
                 State s = new State(new MockGridProgram(blocks));
-                s.Tick();
+                s.Tick("", UpdateType.Update10);
 
                 Assert.True(s.outputs.ContainsKey("itemdetail"));
                 Assert.Single(s.outputs["itemdetail"]);
@@ -370,7 +364,7 @@ namespace droidbot.tests
                         }
                         ];
                 State s = new State(new MockGridProgram(blocks));
-                s.Tick();
+                s.Tick("", UpdateType.Update10);
 
                 Assert.True(s.outputs.ContainsKey("itemdetail"));
                 Assert.Single(s.outputs["itemdetail"]);
@@ -425,7 +419,7 @@ namespace droidbot.tests
                         }
                         ];
                 State s = new State(new MockGridProgram(blocks));
-                s.Tick();
+                s.Tick("", UpdateType.Update10);
 
                 Assert.True(s.outputs.ContainsKey("itemdetail"));
                 Assert.Single(s.outputs["itemdetail"]);
@@ -474,7 +468,7 @@ namespace droidbot.tests
                         }
                         ];
                 State s = new State(new MockGridProgram(blocks));
-                s.Tick();
+                s.Tick("", UpdateType.Update10);
 
                 Assert.True(s.outputs.ContainsKey("power"));
                 Assert.Single(s.outputs["power"]);
