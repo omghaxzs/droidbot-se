@@ -35,8 +35,7 @@ namespace droidbot.tests
                         _inventoryItems = [
                                     new MyInventoryItem(MyItemType.MakeOre("uranium"), 0, 394823)
                                 ],
-                        _currentVolume = 0,
-                        _maxVolume = 3000
+                        _maxVolume = 400000
                     }
                 };
                 var refinery = new MockMyRefinery
@@ -53,8 +52,7 @@ namespace droidbot.tests
                                 ],
                         _inventoryItems = [
                                 ],
-                        _currentVolume = 0,
-                        _maxVolume = 3000
+                        _maxVolume = 400000
                     }
                 };
                 List<IMyTerminalBlock> blocks = [cargoContainer, refinery];

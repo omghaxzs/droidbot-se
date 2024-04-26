@@ -76,8 +76,51 @@ namespace Droidbot.Balance // FILTER
             }
 
             TransferOreToRefineries();
+            TransferIngotsFromRefineriesToStorage();
+            TransferStuffFromConnectorsToStorage();
 
             tick++;
+        }
+
+        private void TransferStuffFromConnectorsToStorage()
+        {
+            // Go through each type of ingot
+            foreach (var itemType in this.itemTypes)
+            {
+                // Now go through each of our connectors
+                foreach (var connector in this.connectors)
+                {
+                    // does it have some?
+                    var itemAmount = connector.GetInventory().GetItemAmount(itemType);
+                    if (itemAmount > 0)
+                    {
+                        // Let's put it somewhere
+                        TransferToSomeStorage(connector.GetInventory(), itemType, itemAmount);
+                    }
+                }
+            }
+        }
+
+        private void TransferIngotsFromRefineriesToStorage()
+        {
+            // Go through each type of ingot
+            foreach (var itemType in this.itemTypes)
+            {
+                if (itemType.TypeId == "MyObjectBuilder_Ingot")
+                {
+                    // Now go through each of our refinery output inventory
+                    foreach (var refinery in this.refineries)
+                    {
+                        // does it have some?
+                        var itemAmount = refinery.OutputInventory.GetItemAmount(itemType);
+                        if (itemAmount > 0)
+                        {
+                            // Let's put it somewhere
+                            TransferToSomeStorage(refinery.OutputInventory, itemType, itemAmount);
+                        }
+                    }
+                }
+            }
         }
 
         private void TransferOreToRefineries()
@@ -95,18 +138,58 @@ namespace Droidbot.Balance // FILTER
                         if (itemAmount > 0)
                         {
                             // Let's put it somewhere
-                            TransferOreFromStorageToARefinery(storage, itemType, itemAmount);
+                            TransferFromStorageToARefinery(storage, itemType, itemAmount);
                         }
                     }
                 }
             }
         }
 
-        private void TransferOreFromStorageToARefinery(IMyCargoContainer storage, MyItemType itemType, MyFixedPoint amount)
+        private void TransferToSomeStorage(IMyInventory fromInventory, MyItemType itemType, MyFixedPoint amount)
         {
+            MyFixedPoint amountLeft = amount;
+            // go through our storage
+            foreach (var storage in this.storage)
+            {
+                var amountToTransfer = amountLeft;
+                var storageInventory = storage.GetInventory();
+                // skip if its full, the item can't be added, or if there's no conveyor connection to it
+                if (!storageInventory.IsFull && storageInventory.CanItemsBeAdded(amount, itemType) && fromInventory.CanTransferItemTo(storageInventory, itemType))
+                {
+                    // get the item
+                    var inventoryItem = fromInventory.FindItem(itemType);
+                    if (inventoryItem.HasValue)
+                    {
+                        var res = fromInventory.TransferItemTo(storageInventory, inventoryItem.Value, amountToTransfer);
+                        // if it failed, try to transfer just a little bit and then bail
+                        if (!res)
+                        {
+                            amountToTransfer = 1;
+                            if (fromInventory.TransferItemTo(storageInventory, inventoryItem.Value, amountToTransfer))
+                            {
+                                amountToTransfer = 0;
+                            }
+                        }
+                    }
+                }
+
+                amountLeft -= amountToTransfer;
+
+                // is there any left?
+                if (amountLeft <= 0)
+                {
+                    break;
+                }
+            }
+        }
+
+        private void TransferFromStorageToARefinery(IMyCargoContainer storage, MyItemType itemType, MyFixedPoint amount)
+        {
+            MyFixedPoint amountLeft = amount;
             // go through our refineries
             foreach (var refinery in this.refineries)
             {
+                var amountToTransfer = amountLeft;
                 var refineryInventory = refinery.InputInventory;
                 // skip if its full, the item can't be added, or if there's no conveyor connection to it
                 if (!refineryInventory.IsFull && refineryInventory.CanItemsBeAdded(amount, itemType) && storage.GetInventory().CanTransferItemTo(refineryInventory, itemType))
@@ -115,13 +198,25 @@ namespace Droidbot.Balance // FILTER
                     var inventoryItem = storage.GetInventory().FindItem(itemType);
                     if (inventoryItem.HasValue)
                     {
-                        var res = storage.GetInventory().TransferItemTo(refineryInventory, inventoryItem.Value);
+                        var res = storage.GetInventory().TransferItemTo(refineryInventory, inventoryItem.Value, amountToTransfer);
                         // if it failed, try to transfer just a little bit and then bail
                         if (!res)
                         {
-                            storage.GetInventory().TransferItemTo(refineryInventory, inventoryItem.Value, 1);
+                            amountToTransfer = 1;
+                            if (storage.GetInventory().TransferItemTo(refineryInventory, inventoryItem.Value, amountToTransfer))
+                            {
+                                amountToTransfer = 0;
+                            }
                         }
                     }
+                }
+
+                amountLeft -= amountToTransfer;
+
+                // is there any left?
+                if (amountLeft <= 0)
+                {
+                    break;
                 }
             }
         }

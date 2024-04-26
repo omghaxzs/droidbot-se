@@ -210,37 +210,51 @@ namespace droidbot.tests
 
     public class MockMyInventory : IMyInventory
     {
+        static MyFixedPoint GLOBAL_ITEM_VOLUME = (MyFixedPoint)0.37458;
+
         public List<MyInventoryItem> _inventoryItems = [];
 
-        IMyEntity IMyInventory.Owner => throw new NotImplementedException();
+        public IMyEntity Owner => throw new NotImplementedException();
 
-        bool IMyInventory.IsFull => _currentVolume >= _maxVolume;
+        public bool IsFull => CurrentVolume >= MaxVolume;
 
-        MyFixedPoint IMyInventory.CurrentMass => throw new NotImplementedException();
+        public MyFixedPoint CurrentMass => throw new NotImplementedException();
 
         public MyFixedPoint _maxVolume;
-        MyFixedPoint IMyInventory.MaxVolume => _maxVolume;
 
-        public MyFixedPoint _currentVolume;
-        MyFixedPoint IMyInventory.CurrentVolume => _currentVolume;
+        public MyFixedPoint MaxVolume => _maxVolume;
 
-        int IMyInventory.ItemCount => _inventoryItems.Count;
+        public MyFixedPoint CurrentVolume
+        {
+            get
+            {
+                MyFixedPoint volume = 0;
+                foreach (var item in _inventoryItems)
+                {
+                    volume += GLOBAL_ITEM_VOLUME * item.Amount;
+                }
+                return volume;
+            }
+        }
 
-        float IMyInventory.VolumeFillFactor => throw new NotImplementedException();
+        public int ItemCount => _inventoryItems.Count;
 
-        bool IMyInventory.CanItemsBeAdded(MyFixedPoint amount, MyItemType itemType) => _currentVolume + (1 * amount) > _maxVolume;
+        public float VolumeFillFactor => throw new NotImplementedException();
 
-        bool IMyInventory.CanTransferItemTo(IMyInventory otherInventory, MyItemType itemType) => true;
+        public bool CanItemsBeAdded(MyFixedPoint amount, MyItemType itemType) => CurrentVolume + (GLOBAL_ITEM_VOLUME * amount) <= MaxVolume;
 
-        bool IMyInventory.ContainItems(MyFixedPoint amount, MyItemType itemType) => throw new NotImplementedException();
+        public bool CanTransferItemTo(IMyInventory otherInventory, MyItemType itemType) => true;
 
-        MyInventoryItem? IMyInventory.FindItem(MyItemType itemType)
+        public bool ContainItems(MyFixedPoint amount, MyItemType itemType) => throw new NotImplementedException();
+
+        public MyInventoryItem? FindItem(MyItemType itemType)
         {
             return _inventoryItems.Any(i => i.Type == itemType) ? _inventoryItems.First(i => i.Type == itemType) : null;
         }
 
         public List<MyItemType> _acceptedItems = new List<MyItemType>();
-        void IMyInventory.GetAcceptedItems(List<MyItemType> itemsTypes, Func<MyItemType, bool> filter)
+
+        public void GetAcceptedItems(List<MyItemType> itemsTypes, Func<MyItemType, bool> filter)
         {
             foreach (var item in _acceptedItems)
             {
@@ -251,7 +265,7 @@ namespace droidbot.tests
             }
         }
 
-        MyFixedPoint IMyInventory.GetItemAmount(MyItemType itemType)
+        public MyFixedPoint GetItemAmount(MyItemType itemType)
         {
             MyFixedPoint total = 0;
             foreach (var iitem in _inventoryItems)
@@ -264,39 +278,40 @@ namespace droidbot.tests
             return total;
         }
 
-        MyInventoryItem? IMyInventory.GetItemAt(int index) => throw new NotImplementedException();
+        public MyInventoryItem? GetItemAt(int index) => throw new NotImplementedException();
 
-        MyInventoryItem? IMyInventory.GetItemByID(uint id) => throw new NotImplementedException();
+        public MyInventoryItem? GetItemByID(uint id) => throw new NotImplementedException();
 
-        void IMyInventory.GetItems(List<MyInventoryItem> items, Func<MyInventoryItem, bool> filter) => throw new NotImplementedException();
+        public void GetItems(List<MyInventoryItem> items, Func<MyInventoryItem, bool> filter) => throw new NotImplementedException();
 
-        bool IMyInventory.IsConnectedTo(IMyInventory otherInventory) => throw new NotImplementedException();
+        public bool IsConnectedTo(IMyInventory otherInventory) => throw new NotImplementedException();
 
-        bool IMyInventory.IsItemAt(int position) => throw new NotImplementedException();
+        public bool IsItemAt(int position) => throw new NotImplementedException();
 
-        bool IMyInventory.TransferItemFrom(IMyInventory sourceInventory, MyInventoryItem item, MyFixedPoint? amount) => throw new NotImplementedException();
+        public bool TransferItemFrom(IMyInventory sourceInventory, MyInventoryItem item, MyFixedPoint? amount) => throw new NotImplementedException();
 
-        bool IMyInventory.TransferItemFrom(IMyInventory sourceInventory, int sourceItemIndex, int? targetItemIndex, bool? stackIfPossible, MyFixedPoint? amount) => throw new NotImplementedException();
+        public bool TransferItemFrom(IMyInventory sourceInventory, int sourceItemIndex, int? targetItemIndex, bool? stackIfPossible, MyFixedPoint? amount) => throw new NotImplementedException();
 
-        bool IMyInventory.TransferItemTo(IMyInventory dstInventory, MyInventoryItem item, MyFixedPoint? amount)
+        public bool TransferItemTo(IMyInventory dstInventory, MyInventoryItem item, MyFixedPoint? amount)
         {
-            // let's try it
-            // take it out of my inventory
-            _inventoryItems.RemoveAt((int)item.ItemId);
-            var mockInventory = dstInventory as MockMyInventory;
-            if (mockInventory != null)
+            // can we add it?
+            if (amount.HasValue && CanItemsBeAdded(amount.Value, item.Type))
             {
-                mockInventory._inventoryItems.Add(item);
-            }
-            else
-            {
-                return false;
+                // let's try it
+                // take it out of my inventory
+                _inventoryItems.RemoveAt((int)item.ItemId);
+                var mockInventory = dstInventory as MockMyInventory;
+                if (mockInventory != null)
+                {
+                    mockInventory._inventoryItems.Add(item);
+                    return true;
+                }
             }
 
             return true;
         }
 
-        bool IMyInventory.TransferItemTo(IMyInventory dst, int sourceItemIndex, int? targetItemIndex, bool? stackIfPossible, MyFixedPoint? amount)
+        public bool TransferItemTo(IMyInventory dst, int sourceItemIndex, int? targetItemIndex, bool? stackIfPossible, MyFixedPoint? amount)
         {
             throw new NotImplementedException();
         }

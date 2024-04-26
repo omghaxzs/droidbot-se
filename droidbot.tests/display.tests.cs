@@ -131,7 +131,6 @@ namespace droidbot.tests
                             _displayNameText = "storage",
                             _customData = "droid",
                             _inventory = new MockMyInventory {
-                                _currentVolume = 0,
                                 _maxVolume = 3000
                             }
                         }
@@ -194,7 +193,6 @@ namespace droidbot.tests
                             _displayNameText = "storage",
                             _customData = "droid",
                             _inventory = new MockMyInventory {
-                                _currentVolume = 0,
                                 _maxVolume = 3000
                             }
                         }
@@ -259,7 +257,6 @@ namespace droidbot.tests
                                 _acceptedItems = [
                                     MyItemType.MakeOre("uranium"),
                                 ],
-                                _currentVolume = 0,
                                 _maxVolume = 3000
                             }
                         }
@@ -314,7 +311,6 @@ namespace droidbot.tests
                                 _inventoryItems = [
                                     new MyInventoryItem(MyItemType.MakeOre("uranium"), 0, 394823)
                                 ],
-                                _currentVolume = 0,
                                 _maxVolume = 3000
                             }
                         }
@@ -369,7 +365,6 @@ namespace droidbot.tests
                                 _inventoryItems = [
                                     new MyInventoryItem(MyItemType.MakeOre("uranium"), 0, 394823)
                                 ],
-                                _currentVolume = 0,
                                 _maxVolume = 3000
                             }
                         }
@@ -425,7 +420,6 @@ namespace droidbot.tests
                                 _inventoryItems = [
                                     new MyInventoryItem(MyItemType.MakeOre("uranium"), 0, 394823)
                                 ],
-                                _currentVolume = 0,
                                 _maxVolume = 3000
                             }
                         }
