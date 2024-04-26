@@ -11,6 +11,18 @@ using VRage.Game.ModAPI.Ingame; // FILTER
 
 namespace Droidbot.Balance // FILTER
 { // FILTER
+
+// droidbot-se
+// balance
+
+// this script is designed to move items around different places to keep the conveyor system busy and nothing gets stuck
+// current functionality: 
+// - it will move items from marked Connector block inventories to marked storage
+// - it will move ore items from marked storage to any marked refineries
+// - it will move ingots from any marked refineries to marked storage
+
+// "marked" in this context means blocks that have custom data starting with "droid". So a storage block with the custom data starting with "droid"
+// will be considered marked storage. Same for refinery blocks, connector blocks, etc...
     public class State
     {
         public List<IMyCargoContainer> storage = new List<IMyCargoContainer>();
