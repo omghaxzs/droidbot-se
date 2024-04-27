@@ -176,31 +176,45 @@ namespace Droidbot.Balance // FILTER
             }
         }
 
-        private void AssembleSomething(MyItemType itemType, MyFixedPoint v)
+        private bool AssembleSomething(MyItemType itemType, MyFixedPoint v)
         {
             // go through each of our assemblers, sorted by whats least
             if (this.assemblers.Count > 0)
             {
+                MyObjectBuilder_BlueprintDefinition d;
                 var assembler = assemblers[tick % this.assemblers.Count];
                 var blueprint = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/" + itemType.SubtypeId);
+                var blueprint2 = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/" + itemType.SubtypeId + "Component");
+                var canProduceBlueprint = assembler.CanUseBlueprint(blueprint);
+                var canProduceBlueprint2 = assembler.CanUseBlueprint(blueprint2);
                 // can it produce it?
-                if (assembler.CanUseBlueprint(blueprint))
+                if (canProduceBlueprint || canProduceBlueprint2)
                 {
                     var queueItems = new List<MyProductionItem>();
                     assembler.GetQueue(queueItems);
                     foreach (var queueItem in queueItems)
                     {
-                        if (queueItem.BlueprintId == blueprint)
+                        if (queueItem.BlueprintId == blueprint || queueItem.BlueprintId == blueprint2)
                         {
                             // nope, abort
-                            return;
+                            return false;
                         }
                     }
 
                     // go through the items 
-                    assembler.AddQueueItem(blueprint, v);
+                    if (canProduceBlueprint)
+                    {
+                        assembler.AddQueueItem(blueprint, v);
+                    }
+                    else if (canProduceBlueprint2)
+                    {
+                        assembler.AddQueueItem(blueprint2, v);
+                    }
                 }
+                return true;
             }
+
+            return false;
         }
 
         private void TransferStuffFromConnectorsToStorage()
