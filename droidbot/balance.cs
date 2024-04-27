@@ -4,7 +4,8 @@ using System.Collections.Generic; // FILTER
 using Sandbox.ModAPI.Ingame; // FILTER
 using VRage; // FILTER
 using VRage.Game.ModAPI.Ingame; // FILTER
-using VRage.Utils; // FILTER
+using VRage.Utils;
+using VRage.Game; // FILTER
 
 namespace Droidbot.Balance // FILTER
 { // FILTER
@@ -176,9 +177,14 @@ namespace Droidbot.Balance // FILTER
         private void AssembleSomething(MyItemType itemType, MyFixedPoint v)
         {
             // go through each of our assemblers, sorted by whats least
-            if (this.assemblers.Count > 0) {
-                var assembler = this.assemblers[tick % this.assemblers.Count];
-                assembler.AddQueueItem(itemType, v);
+            if (this.assemblers.Count > 0)
+            {
+                var assembler = assemblers[tick % this.assemblers.Count];
+                // can it produce it?
+                if (assembler.CanUseBlueprint(itemType))
+                {
+                    assembler.AddQueueItem(itemType, v);
+                }
             }
         }
 
