@@ -169,7 +169,7 @@
         {
             // go through each of our assemblers, sorted by whats least
             if (this.assemblers.Count > 0) {
-                var assembler = this.assemblers.GetRandomItemFromList();
+                var assembler = this.assemblers[tick % this.assemblers.Count];
                 assembler.AddQueueItem(itemType, v);
             }
         }
