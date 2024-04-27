@@ -21,7 +21,7 @@
         public List<MyItemType> itemTypes = new List<MyItemType>();
 
         public Dictionary<MyItemType, MyFixedPoint> itemCounts = new Dictionary<MyItemType, MyFixedPoint>();
-        public Dictionary<MyItemType, MyFixedPoint> assemblerQueueCounts = new Dictionary<MyItemType, MyFixedPoint>();
+        public Dictionary<MyDefinitionId, MyFixedPoint> assemblerQueueCounts = new Dictionary<MyDefinitionId, MyFixedPoint>();
 
         public IMyGridTerminalSystem grid;
         public MyGridProgram prog;
@@ -94,27 +94,28 @@
 
         public void RefreshAssemblerQueueCounts()
         {
-            /*
-            //go through all of our item types and query each of our storage
-            foreach (var itemType in this.itemTypes)
-            {
-                this.assemblerQueueCounts[itemType] = 0;
-            }
             foreach (var assembler in this.assemblers)
             {
                 var queueItems = new List<MyProductionItem>();
                 assembler.GetQueue(queueItems);
                 foreach (var queueItem in queueItems)
                 {
-                    this.assemblerQueueCounts[queueItem.BlueprintId] += queueItem.Amount;
+                    if (this.assemblerQueueCounts.ContainsKey(queueItem.BlueprintId))
+                    {
+                        this.assemblerQueueCounts[queueItem.BlueprintId] += queueItem.Amount;
+                    }
+                    else
+                    {
+                        this.assemblerQueueCounts[queueItem.BlueprintId] = queueItem.Amount;
+                    }
                 }
             }
-            */
         }
 
         public void Tick()
         {
             RefreshItemCounts();
+            RefreshAssemblerQueueCounts();
             if (tick % 10 == 0)
             {
                 ScanAllResources();
@@ -173,10 +174,22 @@
             if (this.assemblers.Count > 0)
             {
                 var assembler = assemblers[tick % this.assemblers.Count];
-                var blueprint = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/"+itemType.SubtypeId);
+                var blueprint = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/" + itemType.SubtypeId);
                 // can it produce it?
                 if (assembler.CanUseBlueprint(blueprint))
                 {
+                    var queueItems = new List<MyProductionItem>();
+                    assembler.GetQueue(queueItems);
+                    foreach (var queueItem in queueItems)
+                    {
+                        if (queueItem.BlueprintId == blueprint)
+                        {
+                            // nope, abort
+                            return;
+                        }
+                    }
+
+                    // go through the items 
                     assembler.AddQueueItem(blueprint, v);
                 }
             }
