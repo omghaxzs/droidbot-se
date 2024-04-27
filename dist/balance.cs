@@ -171,10 +171,11 @@
             if (this.assemblers.Count > 0)
             {
                 var assembler = assemblers[tick % this.assemblers.Count];
+                var blueprint = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/"+itemType.SubtypeId);
                 // can it produce it?
-                if (assembler.CanUseBlueprint(itemType))
+                if (assembler.CanUseBlueprint(blueprint))
                 {
-                    assembler.AddQueueItem(itemType, v);
+                    assembler.AddQueueItem(blueprint, v);
                 }
             }
         }

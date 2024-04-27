@@ -4,6 +4,7 @@ using System.Collections.Generic; // FILTER
 using Sandbox.ModAPI.Ingame; // FILTER
 using VRage; // FILTER
 using VRage.Game.ModAPI.Ingame; // FILTER
+using VRage.Game; // FILTER
 
 namespace Droidbot.Balance // FILTER
 { // FILTER
@@ -178,10 +179,11 @@ namespace Droidbot.Balance // FILTER
             if (this.assemblers.Count > 0)
             {
                 var assembler = assemblers[tick % this.assemblers.Count];
+                var blueprint = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/"+itemType.SubtypeId);
                 // can it produce it?
-                if (assembler.CanUseBlueprint(itemType))
+                if (assembler.CanUseBlueprint(blueprint))
                 {
-                    assembler.AddQueueItem(itemType, v);
+                    assembler.AddQueueItem(blueprint, v);
                 }
             }
         }
