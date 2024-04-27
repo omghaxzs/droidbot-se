@@ -94,6 +94,7 @@
 
         public void RefreshAssemblerQueueCounts()
         {
+            /*
             //go through all of our item types and query each of our storage
             foreach (var itemType in this.itemTypes)
             {
@@ -108,6 +109,7 @@
                     this.assemblerQueueCounts[queueItem.BlueprintId] += queueItem.Amount;
                 }
             }
+            */
         }
 
         public void Tick()
