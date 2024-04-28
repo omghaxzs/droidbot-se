@@ -274,12 +274,11 @@
 
         private void TransferToSomeStorage(IMyInventory fromInventory, MyItemType itemType, MyFixedPoint amount)
         {
-            MyFixedPoint amountLeft = amount;
             // go through our storage
-            foreach (var storage in this.storage)
+            if (this.storage.Count > 0)
             {
-                var amountToTransfer = amountLeft;
-                var storageInventory = storage.GetInventory();
+                var randoStorage = this.storage[tick % this.storage.Count];
+                var storageInventory = randoStorage.GetInventory();
                 // skip if its full, the item can't be added, or if there's no conveyor connection to it
                 if (!storageInventory.IsFull && storageInventory.CanItemsBeAdded(amount, itemType) && fromInventory.CanTransferItemTo(storageInventory, itemType))
                 {
@@ -287,25 +286,13 @@
                     var inventoryItem = fromInventory.FindItem(itemType);
                     if (inventoryItem.HasValue)
                     {
-                        var res = fromInventory.TransferItemTo(storageInventory, inventoryItem.Value, amountToTransfer);
+                        var res = fromInventory.TransferItemTo(storageInventory, inventoryItem.Value, amount);
                         // if it failed, try to transfer just a little bit and then bail
                         if (!res)
                         {
-                            amountToTransfer = 1;
-                            if (fromInventory.TransferItemTo(storageInventory, inventoryItem.Value, amountToTransfer))
-                            {
-                                amountToTransfer = 0;
-                            }
+                            fromInventory.TransferItemTo(storageInventory, inventoryItem.Value, 1);
                         }
                     }
-                }
-
-                amountLeft -= amountToTransfer;
-
-                // is there any left?
-                if (amountLeft <= 0)
-                {
-                    break;
                 }
             }
         }
