@@ -58,16 +58,16 @@ namespace Droidbot.Balance // FILTER
             this.assemblers.Clear();
 
             // grab all storage
-            this.grid.GetBlocksOfType(this.storage, s => s.CustomData.StartsWith("droid"));
+            this.grid.GetBlocksOfType(this.storage, s => s.CubeGrid == prog.Me.CubeGrid && s.CustomData.StartsWith("droid"));
 
             // grab all refineries
-            this.grid.GetBlocksOfType(this.refineries, s => s.CustomData.StartsWith("droid"));
+            this.grid.GetBlocksOfType(this.refineries, s => s.CubeGrid == prog.Me.CubeGrid && s.CustomData.StartsWith("droid"));
 
             // grab all connectors
-            this.grid.GetBlocksOfType(this.connectors, s => s.CustomData.StartsWith("droid"));
+            this.grid.GetBlocksOfType(this.connectors, s => s.CubeGrid == prog.Me.CubeGrid && s.CustomData.StartsWith("droid"));
 
             // grab all assemblers
-            this.grid.GetBlocksOfType(this.assemblers, s => s.CustomData.StartsWith("droid"));
+            this.grid.GetBlocksOfType(this.assemblers, s => s.CubeGrid == prog.Me.CubeGrid && s.CustomData.StartsWith("droid"));
 
             // get item types and put em in our list
             foreach (var storage in this.storage)
@@ -181,7 +181,6 @@ namespace Droidbot.Balance // FILTER
             // go through each of our assemblers, sorted by whats least
             if (this.assemblers.Count > 0)
             {
-                MyObjectBuilder_BlueprintDefinition d;
                 var assembler = assemblers[tick % this.assemblers.Count];
                 var blueprint = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/" + itemType.SubtypeId);
                 var blueprint2 = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/" + itemType.SubtypeId + "Component");

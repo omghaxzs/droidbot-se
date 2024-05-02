@@ -264,6 +264,7 @@
                 { "storage", DrawStorageInfo },
                 { "itemdetail", DrawItemDetail },
                 { "power", DrawPowerOverview },
+                { "h2o", DrawGasDetail },
                 { "log", DrawLogs }
         };
 
@@ -277,6 +278,8 @@
         public List<IMyCargoContainer> storage = new List<IMyCargoContainer>();
         public List<IMyBatteryBlock> batteries = new List<IMyBatteryBlock>();
         public List<IMyPowerProducer> powerProducers = new List<IMyPowerProducer>();
+
+        public List<IMyGasGenerator> gasGenerators = new List<IMyGasGenerator>();
         public float fontSize;
         public Color textColor;
         public IMyGridTerminalSystem grid;
@@ -304,6 +307,16 @@
             broadcastListener = p.IGC.RegisterBroadcastListener("droid");
             broadcastListener.SetMessageCallback("droid");
 
+
+            ScanScreens();
+            ScanAllResources();
+            RefreshItemCounts();
+        }
+
+        private void ScanScreens()
+        {
+            this.outputs.Clear();
+            this.displays.Clear();
             foreach (var vis in VISUALS)
             {
                 outputs[vis.Key] = new List<Surface>();
@@ -369,9 +382,6 @@
                     }
                 }
             }
-
-            ScanAllResources();
-            RefreshItemCounts();
         }
 
         public void Log(string text)
@@ -394,20 +404,25 @@
 
         public void ScanAllResources()
         {
+            ScanScreens();
             this.storage.Clear();
             this.batteries.Clear();
             this.powerProducers.Clear();
             this.itemTypes.Clear();
             this.itemCounts.Clear();
+            this.gasGenerators.Clear();
 
             // grab all storage
-            this.grid.GetBlocksOfType(this.storage, s => s.CustomData.StartsWith("droid"));
+            this.grid.GetBlocksOfType(this.storage, s => s.CubeGrid == prog.Me.CubeGrid && s.CustomData.StartsWith("droid"));
 
             // grab all batteries
-            this.grid.GetBlocksOfType(this.batteries, s => s.CustomData.StartsWith("droid"));
+            this.grid.GetBlocksOfType(this.batteries, s => s.CubeGrid == prog.Me.CubeGrid && s.CustomData.StartsWith("droid"));
 
             // grab all power producers
-            this.grid.GetBlocksOfType(this.powerProducers, s => s.CustomData.StartsWith("droid"));
+            this.grid.GetBlocksOfType(this.powerProducers, s => s.CubeGrid == prog.Me.CubeGrid && s.CustomData.StartsWith("droid"));
+
+            // grab all gas generators
+            this.grid.GetBlocksOfType(this.gasGenerators, s => s.CubeGrid == prog.Me.CubeGrid && s.CustomData.StartsWith("droid"));
 
             // get item types and put em in our list
             foreach (var storage in this.storage)
@@ -613,6 +628,27 @@
             s.DrawText("[power]", new Vector2(0, s.viewport.Size.Y - s.characterSize.Y), state.textColor, TextAlignment.LEFT);
         }
 
+        public static void DrawGasDetail(State state, Surface s)
+        {
+            var posY = 0.0f;
+
+            MyFixedPoint currentOutput = 0;
+            MyFixedPoint maxOutput = 0;
+
+            MyFixedPoint currentStoredPower = 0;
+            MyFixedPoint maxStoredPower = 0;
+
+            var suffix = String.Format("{0} MW / {1} MW", currentOutput, maxOutput);
+            s.DrawProgressBar(new Vector2(0, posY), currentOutput, maxOutput, Color.White, "power output", suffix);
+            posY += s.characterSize.Y * 2;
+
+            suffix = String.Format("{0} MWh / {1} MWh", currentStoredPower, maxStoredPower);
+            s.DrawProgressBar(new Vector2(0, posY), currentStoredPower, maxStoredPower, Color.White, "battery", suffix);
+
+            // bottom part
+            s.DrawText("[power]", new Vector2(0, s.viewport.Size.Y - s.characterSize.Y), state.textColor, TextAlignment.LEFT);
+        }
+
         public static void DrawLogs(State state, Surface s)
         {
             var posY = 0.0f;
@@ -678,4 +714,4 @@
 public class DroidbotEnums
 {
     public const int EVENT_MOVED_ITEMS = 1;
-};
+};
