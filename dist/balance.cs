@@ -179,14 +179,15 @@
                 var blueprint3 = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Farmed" + itemType.SubtypeId);
                 var canProduceBlueprint = assembler.CanUseBlueprint(blueprint);
                 var canProduceBlueprint2 = assembler.CanUseBlueprint(blueprint2);
+                var canProduceBlueprint3 = assembler.CanUseBlueprint(blueprint3);
                 // can it produce it?
-                if (canProduceBlueprint || canProduceBlueprint2)
+                if (canProduceBlueprint || canProduceBlueprint2 || canProduceBlueprint3)
                 {
                     var queueItems = new List<MyProductionItem>();
                     assembler.GetQueue(queueItems);
                     foreach (var queueItem in queueItems)
                     {
-                        if (queueItem.BlueprintId == blueprint || queueItem.BlueprintId == blueprint2)
+                        if (queueItem.BlueprintId == blueprint || queueItem.BlueprintId == blueprint2 || queueItem.BlueprintId == blueprint3)
                         {
                             // nope, abort
                             return false;
@@ -201,6 +202,10 @@
                     else if (canProduceBlueprint2)
                     {
                         assembler.AddQueueItem(blueprint2, v);
+                    } else if (canProduceBlueprint3) {
+                        assembler.AddQueueItem(blueprint3, v);
+                    } else {
+                        Log("could not add " + itemType);
                     }
                 }
                 return true;
