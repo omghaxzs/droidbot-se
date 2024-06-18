@@ -428,7 +428,7 @@
             foreach (var storage in this.storage)
             {
                 var acceptedItems = new List<MyItemType>();
-                storage.GetInventory().GetAcceptedItems(acceptedItems, it => it.TypeId == "MyObjectBuilder_Ore" || it.TypeId == "MyObjectBuilder_Ingot" || it.TypeId == "MyObjectBuilder_Component");
+                storage.GetInventory().GetAcceptedItems(acceptedItems, it => it.TypeId == "MyObjectBuilder_Ore" || it.TypeId == "MyObjectBuilder_Ingot" || it.TypeId == "MyObjectBuilder_Component" || it.TypeId == "MyObjectBuilder_AmmoMagazine");
                 foreach (var itemType in acceptedItems)
                 {
                     if (!this.itemTypes.Contains(itemType))
