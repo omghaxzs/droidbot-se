@@ -73,7 +73,7 @@ namespace Droidbot.Balance // FILTER
             foreach (var storage in this.storage)
             {
                 var acceptedItems = new List<MyItemType>();
-                storage.GetInventory().GetAcceptedItems(acceptedItems, it => it.TypeId == "MyObjectBuilder_Ore" || it.TypeId == "MyObjectBuilder_Ingot" || it.TypeId == "MyObjectBuilder_Component");
+                storage.GetInventory().GetAcceptedItems(acceptedItems, it => it.TypeId == "MyObjectBuilder_Ore" || it.TypeId == "MyObjectBuilder_Ingot" || it.TypeId == "MyObjectBuilder_Component" || it.TypeId == "MyObjectBuilder_AmmoMagazine");
                 foreach (var itemType in acceptedItems)
                 {
                     if (!this.itemTypes.Contains(itemType))
@@ -144,7 +144,7 @@ namespace Droidbot.Balance // FILTER
             // Go through each type of component
             foreach (var itemType in this.itemTypes)
             {
-                if (itemType.TypeId == "MyObjectBuilder_Component")
+                if (itemType.TypeId == "MyObjectBuilder_Component" || itemType.TypeId == "MyObjectBuilder_AmmoMagazine")
                 {
                     // Now go through each of our assembler output inventory
                     foreach (var assembler in this.assemblers)
@@ -166,7 +166,7 @@ namespace Droidbot.Balance // FILTER
             // Go through each type of component
             foreach (var itemType in this.itemTypes)
             {
-                if (itemType.TypeId == "MyObjectBuilder_Component")
+                if (itemType.TypeId == "MyObjectBuilder_Component" || itemType.TypeId == "MyObjectBuilder_Ingot" || itemType.TypeId == "MyObjectBuilder_AmmoMagazine")
                 {
                     if (this.itemCounts[itemType] <= 1000)
                     {
@@ -184,6 +184,7 @@ namespace Droidbot.Balance // FILTER
                 var assembler = assemblers[tick % this.assemblers.Count];
                 var blueprint = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/" + itemType.SubtypeId);
                 var blueprint2 = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/" + itemType.SubtypeId + "Component");
+                var blueprint3 = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Farmed" + itemType.SubtypeId);
                 var canProduceBlueprint = assembler.CanUseBlueprint(blueprint);
                 var canProduceBlueprint2 = assembler.CanUseBlueprint(blueprint2);
                 // can it produce it?
@@ -218,18 +219,19 @@ namespace Droidbot.Balance // FILTER
 
         private void TransferStuffFromConnectorsToStorage()
         {
-            // Go through each type of item
-            foreach (var itemType in this.itemTypes)
+            // Now go through each of our connectors
+            foreach (var connector in this.connectors)
             {
-                // Now go through each of our connectors
-                foreach (var connector in this.connectors)
+                var inventory = connector.GetInventory();
+                // Go through each type of item
+                foreach (var itemType in this.itemTypes)
                 {
                     // does it have some?
-                    var itemAmount = connector.GetInventory().GetItemAmount(itemType);
+                    var itemAmount = inventory.GetItemAmount(itemType);
                     if (itemAmount > 0)
                     {
                         // Let's put it somewhere
-                        TransferToSomeStorage(connector.GetInventory(), itemType, itemAmount);
+                        TransferToSomeStorage(inventory, itemType, itemAmount);
                     }
                 }
             }
@@ -389,6 +391,7 @@ namespace Droidbot.Balance // FILTER
         public void Main(string argument, UpdateType updateSource)
         {
             _state.Tick();
+            Echo("last runtime: " + Runtime.LastRunTimeMs);
         }
     } // FILTER
 } // FILTER
