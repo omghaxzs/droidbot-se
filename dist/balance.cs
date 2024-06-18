@@ -1,4 +1,6 @@
 
+using VRage.Game;
+using Sandbox.Definitions;
 
 
     // droidbot-se
@@ -22,6 +24,9 @@
 
         public Dictionary<MyItemType, MyFixedPoint> itemCounts = new Dictionary<MyItemType, MyFixedPoint>();
         public Dictionary<MyDefinitionId, MyFixedPoint> assemblerQueueCounts = new Dictionary<MyDefinitionId, MyFixedPoint>();
+
+        public Dictionary<MyItemType, MyDefinitionId> itemBlueprintMap = new Dictionary<MyItemType, MyDefinitionId>();
+        public List<MyItemType> undiscoverableBlueprints = new List<MyItemType>();
 
         public IMyGridTerminalSystem grid;
         public MyGridProgram prog;
@@ -174,44 +179,77 @@
             if (this.assemblers.Count > 0)
             {
                 var assembler = assemblers[tick % this.assemblers.Count];
-                var blueprint = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/" + itemType.SubtypeId);
-                var blueprint2 = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/" + itemType.SubtypeId + "Component");
-                var blueprint3 = MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Farmed" + itemType.SubtypeId);
-                var canProduceBlueprint = assembler.CanUseBlueprint(blueprint);
-                var canProduceBlueprint2 = assembler.CanUseBlueprint(blueprint2);
-                var canProduceBlueprint3 = assembler.CanUseBlueprint(blueprint3);
-                // can it produce it?
-                if (canProduceBlueprint || canProduceBlueprint2 || canProduceBlueprint3)
+                var blueprint = DiscoverBlueprint(assembler, itemType);
+                if (blueprint == null)
                 {
-                    var queueItems = new List<MyProductionItem>();
-                    assembler.GetQueue(queueItems);
-                    foreach (var queueItem in queueItems)
+                    // if we could not get the blueprint, just bail
+                    return false;
+                }
+                var queueItems = new List<MyProductionItem>();
+                assembler.GetQueue(queueItems);
+                foreach (var queueItem in queueItems)
+                {
+                    if (queueItem.BlueprintId == blueprint)
                     {
-                        if (queueItem.BlueprintId == blueprint || queueItem.BlueprintId == blueprint2 || queueItem.BlueprintId == blueprint3)
-                        {
-                            // nope, abort
-                            return false;
-                        }
-                    }
-
-                    // go through the items 
-                    if (canProduceBlueprint)
-                    {
-                        assembler.AddQueueItem(blueprint, v);
-                    }
-                    else if (canProduceBlueprint2)
-                    {
-                        assembler.AddQueueItem(blueprint2, v);
-                    } else if (canProduceBlueprint3) {
-                        assembler.AddQueueItem(blueprint3, v);
-                    } else {
-                        Log("could not add " + itemType);
+                        // nope, abort
+                        return false;
                     }
                 }
+
+                assembler.AddQueueItem((MyDefinitionId)blueprint, v);
                 return true;
             }
 
             return false;
+        }
+
+        private MyDefinitionId? DiscoverBlueprint(IMyAssembler assembler, MyItemType itemType)
+        {
+            // fast path
+            if (itemBlueprintMap.ContainsKey(itemType))
+            {
+                return this.itemBlueprintMap[itemType];
+            }
+
+            if (this.undiscoverableBlueprints.Contains(itemType))
+            {
+                return null;
+            }
+
+            // try a bunch
+            // holy fuck slow path
+            var attempts = new List<MyDefinitionId> {
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/" + itemType.SubtypeId),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/" + itemType.SubtypeId + "Component"),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Farmed" + itemType.SubtypeId),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Position0005_" + itemType.SubtypeId),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Position0010_" + itemType.SubtypeId),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Position0020_" + itemType.SubtypeId),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Position0030_" + itemType.SubtypeId),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Position0040_" + itemType.SubtypeId),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Position0050_" + itemType.SubtypeId),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Position0060_" + itemType.SubtypeId),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Position0070_" + itemType.SubtypeId),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Position0080_" + itemType.SubtypeId),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Position0090_" + itemType.SubtypeId),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Position0100_" + itemType.SubtypeId),
+                MyDefinitionId.Parse("MyObjectBuilder_BlueprintDefinition/Position0110_" + itemType.SubtypeId),
+            };
+
+            foreach (var attempt in attempts)
+            {
+                if (assembler.CanUseBlueprint(attempt))
+                {
+                    // this is the one, save it
+                    this.itemBlueprintMap[itemType] = attempt;
+                    return attempt;
+                }
+            }
+
+            // if we've made it here, we've not discovered the blueprint for this guy
+            this.undiscoverableBlueprints.Add(itemType);
+
+            return null;
         }
 
         private void TransferStuffFromConnectorsToStorage()

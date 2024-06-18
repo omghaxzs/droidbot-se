@@ -64,7 +64,7 @@
     <Exec
       Command="findstr /V /R /C:&quot;// FILTER&quot; %(InputFile.Identity) &gt; ../dist/%(InputFile.Identity)_filtered" />
     <Exec
-      Command="copy ..\dist\%(InputFile.Identity)_filtered /A + .\enums.cs /A ..\dist\%(InputFile.Identity) /A" />
+      Command="copy ..\dist\%(InputFile.Identity)_filtered /B + .\enums.cs /B ..\dist\%(InputFile.Identity) /B" />
     <Exec
       Command="del ..\dist\%(InputFile.Identity)_filtered" />
   </Target>
