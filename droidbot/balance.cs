@@ -4,9 +4,7 @@ using System.Collections.Generic; // FILTER
 using Sandbox.ModAPI.Ingame; // FILTER
 using VRage; // FILTER
 using VRage.Game.ModAPI.Ingame; // FILTER
-using VRage.Game;
-using Sandbox.Definitions;
-using System; // FILTER
+using VRage.Game; // FILTER
 
 namespace Droidbot.Balance // FILTER
 { // FILTER

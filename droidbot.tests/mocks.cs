@@ -278,6 +278,8 @@ namespace droidbot.tests
 
         public float VolumeFillFactor => throw new NotImplementedException();
 
+        public bool CanPutItems => throw new NotImplementedException();
+
         public bool CanItemsBeAdded(MyFixedPoint amount, MyItemType itemType) => CurrentVolume + (GLOBAL_ITEM_VOLUME * amount) <= MaxVolume;
 
         public bool CanTransferItemTo(IMyInventory otherInventory, MyItemType itemType) => true;
@@ -549,6 +551,16 @@ namespace droidbot.tests
         }
 
         public void UpdateVisual()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasNobodyPlayerAccessToBlock()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool HasPlayerAccessWithNobodyCheck(long playerId, bool isForPB = false)
         {
             throw new NotImplementedException();
         }
