@@ -46,7 +46,7 @@
   <Target Name="FilterSections" BeforeTargets="BeforeBuild">
     <ItemGroup>
       <!-- Define the input file(s) and output file(s) -->
-      <InputFiles Include="display.cs;balance.cs" />
+      <InputFiles Include="display.cs;balance.cs;airlock.cs" />
     </ItemGroup>
 
     <PropertyGroup>
