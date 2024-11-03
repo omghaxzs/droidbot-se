@@ -1,6 +1,3 @@
-using System;
-using Sandbox.ModAPI.Ingame;
-
 using System.Linq; // FILTER
 using System.Collections.Generic; // FILTER
 
