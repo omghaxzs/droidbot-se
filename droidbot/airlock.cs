@@ -161,8 +161,8 @@ namespace Droidbot.Airlock // FILTER
                     if (airlockTicksExists)
                     {
                         var ticksSince = tick - airlockTicks[door];
-                        // if its been more than 1000 ticks, close it
-                        if (ticksSince > 1000)
+                        // if its been more than 400 ticks, close it
+                        if (ticksSince > 400)
                         {
                             door.CloseDoor();
 
