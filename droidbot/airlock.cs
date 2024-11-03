@@ -27,6 +27,7 @@ namespace Droidbot.Airlock // FILTER
     public class State
     {
         public Dictionary<string, List<IMyDoor>> airlocks = new Dictionary<string, List<IMyDoor>>();
+        public Dictionary<IMyDoor, int> airlockTicks = new Dictionary<IMyDoor, int>();
 
         public IMyGridTerminalSystem grid;
         public MyGridProgram prog;
@@ -116,7 +117,8 @@ namespace Droidbot.Airlock // FILTER
                     door2.CloseDoor();
                 }
 
-                if (door2Status == DoorStatus.Closed) {
+                if (door2Status == DoorStatus.Closed && door2.Enabled == true)
+                {
                     // turn it off
                     door2.Enabled = false;
                 }
@@ -132,18 +134,49 @@ namespace Droidbot.Airlock // FILTER
                     door1.CloseDoor();
                 }
 
-                if (door1Status == DoorStatus.Closed) {
+                if (door1Status == DoorStatus.Closed && door1.Enabled == true)
+                {
                     // turn it off
                     door1.Enabled = false;
                 }
             }
 
-            if (door1Status == DoorStatus.Closed && door2Status == DoorStatus.Closed) {
+            if (door1Status == DoorStatus.Closed && door2Status == DoorStatus.Closed)
+            {
                 // enable the doors
                 door1.Enabled = true;
                 door2.Enabled = true;
             }
 
+            // don't let a door stay open too long.
+            // if its open, and there's no tick recorded for when it was
+            // then record it
+            foreach (var door in airlock)
+            {
+                if (door.Status == DoorStatus.Open && airlockTicks.ContainsKey(door))
+                {
+                    var airlockTicksExists = airlockTicks.ContainsKey(door);
+
+                    // if a time has already been recorded, how long has it been?
+                    if (airlockTicksExists)
+                    {
+                        var ticksSince = airlockTicks[door] - tick;
+                        // if its been more than 10000 ticks, close it
+                        if (ticksSince > 10000)
+                        {
+                            door.CloseDoor();
+
+                            // and remove the entry from the map
+                            airlockTicks.Remove(door);
+                        }
+                    }
+                    else
+                    {
+                        // it doesn't exist, record the current tick
+                        airlockTicks[door] = tick;
+                    }
+                }
+            }
         }
 
         public void Tick()
