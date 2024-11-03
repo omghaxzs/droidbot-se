@@ -145,16 +145,16 @@
             // then record it
             foreach (var door in airlock)
             {
-                if (door.Status == DoorStatus.Open && airlockTicks.ContainsKey(door))
+                if (door.Status == DoorStatus.Open)
                 {
                     var airlockTicksExists = airlockTicks.ContainsKey(door);
 
                     // if a time has already been recorded, how long has it been?
                     if (airlockTicksExists)
                     {
-                        var ticksSince = airlockTicks[door] - tick;
-                        // if its been more than 10000 ticks, close it
-                        if (ticksSince > 10000)
+                        var ticksSince = tick - airlockTicks[door];
+                        // if its been more than 1000 ticks, close it
+                        if (ticksSince > 1000)
                         {
                             door.CloseDoor();
 
