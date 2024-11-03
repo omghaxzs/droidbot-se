@@ -34,6 +34,10 @@ namespace Droidbot.Balance // FILTER
         public Dictionary<MyItemType, MyDefinitionId> itemBlueprintMap = new Dictionary<MyItemType, MyDefinitionId>();
         public List<MyItemType> undiscoverableBlueprints = new List<MyItemType>();
 
+        public Dictionary<string, string> args = new Dictionary<string, string>();
+
+        public List<string> allowList = new List<string>();
+
         public IMyGridTerminalSystem grid;
         public MyGridProgram prog;
 
@@ -88,6 +92,17 @@ namespace Droidbot.Balance // FILTER
 
             RefreshItemCounts();
             RefreshAssemblerQueueCounts();
+
+            // do we have an allow list?
+            if (args.ContainsKey("allow"))
+            {
+                // yep
+                this.allowList.Clear();
+                foreach (var item in args["allow"].Split(","))
+                {
+                    this.allowList.Add(item);
+                }
+            }
         }
 
         public void RefreshItemCounts()
@@ -171,9 +186,14 @@ namespace Droidbot.Balance // FILTER
             {
                 if (itemType.TypeId == "MyObjectBuilder_Component" || itemType.TypeId == "MyObjectBuilder_Ingot" || itemType.TypeId == "MyObjectBuilder_AmmoMagazine")
                 {
-                    if (this.itemCounts[itemType] <= 1000)
+                    var subtype = itemType.SubtypeId.ToLower();
+                    // do we have an allowlist, and is it in it
+                    if (allowList.Count > 0 && allowList.Contains(subtype))
                     {
-                        AssembleSomething(itemType, 10);
+                        if (this.itemCounts[itemType] <= 1000)
+                        {
+                            AssembleSomething(itemType, 10);
+                        }
                     }
                 }
             }
@@ -385,6 +405,27 @@ namespace Droidbot.Balance // FILTER
             }
         }
 
+        public Dictionary<string, string> ParseArguments(string arguments)
+        {
+            var results = new Dictionary<string, string>();
+            // split by semicolon first
+            var argumentsSplit = arguments.Split(';');
+            if (argumentsSplit.Length > 1)
+            {
+                // go through each one
+                foreach (var arg in argumentsSplit)
+                {
+                    // split that by equals
+                    var argsplit = arg.Split('=');
+
+                    // now convert that into the dictionary
+                    results[argsplit[0].Trim()] = argsplit[1].Trim();
+                }
+            }
+
+            return results;
+        }
+
         public Dictionary<string, string> ParseCustomData(IMyTerminalBlock block)
         {
             var results = new Dictionary<string, string>();
@@ -429,8 +470,9 @@ namespace Droidbot.Balance // FILTER
             // needed.
         }
 
-        public void Main(string argument, UpdateType updateSource)
+        public void Main(string arguments, UpdateType updateSource)
         {
+            _state.args = _state.ParseArguments(arguments);
             _state.Tick();
             Echo("last runtime: " + Runtime.LastRunTimeMs);
         }

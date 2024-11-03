@@ -99,7 +99,7 @@
             this.viewport = new RectangleF((surface.TextureSize - surface.SurfaceSize) / 2f,
                                      surface.SurfaceSize
                                  );
-            this.maxCharacterLength = (int)Math.Floor(viewport.Size.X / characterSize.X);
+            this.maxCharacterLength = (int)Math.Floor(viewport.Size.X / characterSize.X)-1;
         }
 
         public override void BeginDraw()
