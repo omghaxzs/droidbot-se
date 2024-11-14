@@ -4,7 +4,7 @@ using System.Collections.Generic; // FILTER
 using Sandbox.ModAPI.Ingame; // FILTER
 using VRage; // FILTER
 using VRage.Game.ModAPI.Ingame; // FILTER
-using VRage.Game; // FILTER
+using VRage.Utils; // FILTER
 
 namespace Droidbot.Balance // FILTER
 { // FILTER
@@ -47,6 +47,8 @@ namespace Droidbot.Balance // FILTER
         {
             this.prog = p;
             this.grid = p.GridTerminalSystem;
+
+            this.args = ParseCustomData(p.Me);
 
             ScanAllResources();
         }
@@ -98,7 +100,7 @@ namespace Droidbot.Balance // FILTER
             {
                 // yep
                 this.allowList.Clear();
-                foreach (var item in args["allow"].Split(","))
+                foreach (var item in args["allow"].Split(','))
                 {
                     this.allowList.Add(item);
                 }
@@ -347,7 +349,7 @@ namespace Droidbot.Balance // FILTER
             // go through our storage
             if (this.storage.Count > 0)
             {
-                var randoStorage = this.storage[tick % this.storage.Count];
+                var randoStorage = this.storage[tick % (this.storage.Count-1)];
                 var storageInventory = randoStorage.GetInventory();
                 // skip if its full, the item can't be added, or if there's no conveyor connection to it
                 if (!storageInventory.IsFull && storageInventory.CanItemsBeAdded(amount, itemType) && fromInventory.CanTransferItemTo(storageInventory, itemType))
@@ -472,7 +474,6 @@ namespace Droidbot.Balance // FILTER
 
         public void Main(string arguments, UpdateType updateSource)
         {
-            _state.args = _state.ParseArguments(arguments);
             _state.Tick();
             Echo("last runtime: " + Runtime.LastRunTimeMs);
         }

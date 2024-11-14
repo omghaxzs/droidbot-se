@@ -40,6 +40,8 @@
             this.prog = p;
             this.grid = p.GridTerminalSystem;
 
+            this.args = ParseCustomData(p.Me);
+
             ScanAllResources();
         }
 
@@ -90,7 +92,7 @@
             {
                 // yep
                 this.allowList.Clear();
-                foreach (var item in args["allow"].Split(","))
+                foreach (var item in args["allow"].Split(','))
                 {
                     this.allowList.Add(item);
                 }
@@ -339,7 +341,7 @@
             // go through our storage
             if (this.storage.Count > 0)
             {
-                var randoStorage = this.storage[tick % this.storage.Count];
+                var randoStorage = this.storage[tick % (this.storage.Count-1)];
                 var storageInventory = randoStorage.GetInventory();
                 // skip if its full, the item can't be added, or if there's no conveyor connection to it
                 if (!storageInventory.IsFull && storageInventory.CanItemsBeAdded(amount, itemType) && fromInventory.CanTransferItemTo(storageInventory, itemType))
@@ -462,7 +464,6 @@
 
         public void Main(string arguments, UpdateType updateSource)
         {
-            _state.args = _state.ParseArguments(arguments);
             _state.Tick();
             Echo("last runtime: " + Runtime.LastRunTimeMs);
         }
